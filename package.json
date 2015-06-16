@@ -1,8 +1,8 @@
 {
-  "name": "hivemq-api-tests",
+  "name": "hivemq-http-api-tests",
   "version": "1.0.0",
   "private": true,
-  "description": "Integration Tests for the HiveMQ Query API",
+  "description": "Integration Tests for the HiveMQ HTTP API",
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha --compilers js:babel/register"

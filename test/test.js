@@ -5,7 +5,7 @@ const mqtt = require("mqtt");
 const request = require("request-promise");
 const _ = require("lodash");
 
-describe("Query API", function() {
+describe("HTTP API", function() {
   const brokerUrl = process.env.BROKER || "localhost";
   const prefix = `test/hivemq-api-${Date.now()}`;
   const topics = {
