@@ -6,7 +6,7 @@ const request = require("request-promise");
 const _ = require("lodash");
 
 describe("Query API", function() {
-  const brokerUrl = "localhost";
+  const brokerUrl = process.env.BROKER || "localhost";
   const prefix = `test/hivemq-api-${Date.now()}`;
   const topics = {
     [`${prefix}/topic1`]: "foo",
