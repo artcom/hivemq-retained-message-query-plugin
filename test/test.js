@@ -21,13 +21,13 @@ describe("HTTP API", function() {
   });
 
   beforeEach(function() {
-    _.forEach(data, (value, topic) => {
-      client.publish(topic, value, { retain: true });
+    _.forEach(data, (payload, topic) => {
+      client.publish(topic, payload, { retain: true });
     });
   });
 
   afterEach(function() {
-    _.forEach(data, (value, topic) => {
+    _.forEach(data, (payload, topic) => {
       client.publish(topic, null, { retain: true });
     });
   });
@@ -36,23 +36,25 @@ describe("HTTP API", function() {
     client.end();
   });
 
-  const sendQuery = function(query) {
+  const sendQuery = function(topic) {
+    const query = _.isArray(topic) ?
+                  _.map(topic, (t) => ({ topic: t })) :
+                  { topic };
     return request.post(`http://${brokerUrl}:8080/query`, { json: query });
   };
 
-  it("should return the value of a topic", function() {
-    const [topic, value] = _(data).pairs().first();
-    return sendQuery({ topic }).then((result) => {
-      expect(result).to.deep.equal({ topic, value });
+  it("should return the payload of a topic", function() {
+    const [topic, payload] = _(data).pairs().first();
+    return sendQuery(topic).then((result) => {
+      expect(result).to.deep.equal({ topic, payload });
     });
   });
 
   it("should return the values of multiple topics", function() {
     const topics = _.keys(data);
-    const expected = _.map(topics, (topic) => ({ topic, value: data[topic] }));
-    const query = _.map(topics, (topic) => ({ topic }));
+    const expected = _.map(topics, (topic) => ({ topic, payload: data[topic] }));
 
-    return sendQuery(query).then((results) => {
+    return sendQuery(topics).then((results) => {
       expect(results).to.deep.equal(expected);
     });
   });

@@ -106,10 +106,10 @@ public class QueryResource {
     }
 
     public static class QueryResult {
-        public static QueryResult success(String topic, String value) {
+        public static QueryResult success(String topic, String payload) {
             QueryResult result = new QueryResult();
             result.topic = topic;
-            result.value = value;
+            result.payload = payload;
             result.error = null;
             return result;
         }
@@ -126,7 +126,7 @@ public class QueryResource {
         }
 
         public String topic;
-        public String value;
+        public String payload;
         public Response.Status error;
     }
 }
