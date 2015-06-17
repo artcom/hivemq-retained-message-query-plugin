@@ -1,6 +1,6 @@
 "use strict";
 
-const expect = require("chai").expect();
+const expect = require("chai").expect;
 const mqtt = require("mqtt");
 const request = require("request-promise");
 const _ = require("lodash");
@@ -37,13 +37,13 @@ describe("HTTP API", function() {
   });
 
   const sendQuery = function(query) {
-    return request.post(`http://${brokerUrl}/${query}`, { json: query });
+    return request.post(`http://${brokerUrl}:8080/query`, { json: query });
   };
 
   it("should return the value of a topic", function() {
     const [topic, value] = _(data).pairs().first();
     return sendQuery({ topic }).then((result) => {
-      expect(result).to.equal({ topic, value });
+      expect(result).to.deep.equal({ topic, value });
     });
   });
 
@@ -52,7 +52,7 @@ describe("HTTP API", function() {
     const expected = _.map(topics, (topic) => ({ topic, value: data[topic] }));
 
     return sendQuery({ topics }).then((results) => {
-      expect(results).to.equal(expected);
+      expect(results).to.deep.equal(expected);
     });
   });
 });
