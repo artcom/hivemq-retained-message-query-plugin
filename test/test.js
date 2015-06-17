@@ -50,8 +50,9 @@ describe("HTTP API", function() {
   it("should return the values of multiple topics", function() {
     const topics = _.keys(data);
     const expected = _.map(topics, (topic) => ({ topic, value: data[topic] }));
+    const query = _.map(topics, (topic) => ({ topic }));
 
-    return sendQuery({ topics }).then((results) => {
+    return sendQuery(query).then((results) => {
       expect(results).to.deep.equal(expected);
     });
   });

@@ -2,9 +2,14 @@ package de.artcom.hivemq_http_api_plugin.resources;
 
 import com.dcsquare.hivemq.spi.message.RetainedMessage;
 import com.dcsquare.hivemq.spi.services.RetainedMessageStore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,10 +19,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.List;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.*;
 
 public class QueryResource {
 
@@ -34,34 +38,66 @@ public class QueryResource {
 
     @POST
     @Path("query")
-    public Response query(String body) {
+    public Response post(String body) {
         try {
-            Query query = objectMapper.readValue(body, Query.class);
-            Optional<QueryResult> result = doQuery(query.topic);
+            JsonNode json = objectMapper.readTree(body);
 
-            if (!result.isPresent()) {
-                return Response.status(NOT_FOUND).build();
+            if (json.isObject()) {
+                Query query = objectMapper.readValue(body, Query.class);
+                return createSingleResponse(singleQuery(query));
+            } else if (json.isArray()) {
+                List<Query> queries = objectMapper.readValue(body, new TypeReference<List<Query>>() {});
+                return createBulkResponse(bulkQuery(queries));
             }
-
-            String json = objectMapper.writeValueAsString(result.get());
-            return Response.status(OK).entity(json).build();
         } catch (IOException e) {
-            return Response.status(BAD_REQUEST).build();
         }
+
+        return Response.status(BAD_REQUEST).build();
     }
 
-    private Optional<QueryResult> doQuery(String topic) {
-        Optional<RetainedMessage> optionalMessage = retainedMessageStore.getRetainedMessage(topic);
+    private QueryResult singleQuery(Query query) {
+        Optional<RetainedMessage> optionalMessage = retainedMessageStore.getRetainedMessage(query.topic);
 
         if (!optionalMessage.isPresent()) {
-            return Optional.absent();
+            return QueryResult.error(NOT_FOUND);
         }
 
         RetainedMessage message = optionalMessage.get();
-        QueryResult result = new QueryResult();
-        result.topic = message.getTopic();
-        result.value = new String(message.getMessage(), Charset.forName("UTF-8"));
-        return Optional.of(result);
+        return QueryResult.success(
+                message.getTopic(),
+                new String(message.getMessage(), Charset.forName("UTF-8"))
+        );
+    }
+
+    private List<QueryResult> bulkQuery(List<Query> queries) {
+        return Lists.transform(queries, new Function<Query, QueryResult>() {
+            @Override
+            public QueryResult apply(Query query) {
+                return singleQuery(query);
+            }
+        });
+    }
+
+    private Response createSingleResponse(QueryResult result) {
+        if (result.isError()) {
+            return Response.status(result.error).build();
+        } else {
+            try {
+                String json = objectMapper.writeValueAsString(result);
+                return Response.status(OK).entity(json).build();
+            } catch (JsonProcessingException e) {
+                return Response.status(INTERNAL_SERVER_ERROR).build();
+            }
+        }
+    }
+
+    private Response createBulkResponse(List<QueryResult> results) {
+        try {
+            String json = objectMapper.writeValueAsString(results);
+            return Response.status(OK).entity(json).build();
+        } catch (JsonProcessingException e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     public static class Query {
@@ -70,7 +106,27 @@ public class QueryResource {
     }
 
     public static class QueryResult {
+        public static QueryResult success(String topic, String value) {
+            QueryResult result = new QueryResult();
+            result.topic = topic;
+            result.value = value;
+            result.error = null;
+            return result;
+        }
+
+        public static QueryResult error(Response.Status error) {
+            QueryResult result = new QueryResult();
+            result.error = error;
+            return result;
+        }
+
+        @JsonIgnore
+        public boolean isError() {
+            return error != null;
+        }
+
         public String topic;
         public String value;
+        public Response.Status error;
     }
 }
