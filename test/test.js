@@ -8,10 +8,10 @@ const _ = require("lodash");
 describe("HTTP API", function() {
   const brokerUrl = process.env.BROKER || "localhost";
   const prefix = `test/hivemq-api-${Date.now()}`;
-  const data = {
-    [`${prefix}/topic1`]: "foo",
-    [`${prefix}/topic2`]: "bar"
-  };
+  const data = [
+    { topic: `${prefix}/topic1`, payload: "foo" },
+    { topic: `${prefix}/topic2`, payload: "bar" }
+  ];
 
   let client;
 
@@ -21,13 +21,13 @@ describe("HTTP API", function() {
   });
 
   beforeEach(function() {
-    _.forEach(data, (payload, topic) => {
+    _.forEach(data, ({ topic, payload }) => {
       client.publish(topic, payload, { retain: true });
     });
   });
 
   afterEach(function() {
-    _.forEach(data, (payload, topic) => {
+    _.forEach(data, ({ topic }) => {
       client.publish(topic, null, { retain: true });
     });
   });
@@ -44,18 +44,18 @@ describe("HTTP API", function() {
   };
 
   it("should return the payload of a topic", function() {
-    const [topic, payload] = _(data).pairs().first();
+    const { topic, payload } = data[0];
+
     return sendQuery(topic).then((result) => {
       expect(result).to.deep.equal({ topic, payload });
     });
   });
 
   it("should return the values of multiple topics", function() {
-    const topics = _.keys(data);
-    const expected = _.map(topics, (topic) => ({ topic, payload: data[topic] }));
+    const topics = _.map(data, "topic");
 
     return sendQuery(topics).then((results) => {
-      expect(results).to.deep.equal(expected);
+      expect(results).to.deep.equal(data);
     });
   });
 });
