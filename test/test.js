@@ -51,6 +51,18 @@ describe("HTTP API", function() {
     });
   });
 
+  it("should return error for inexistent topic", function() {
+    const topic = `${prefix}/does-not-exist`;
+
+    return sendQuery(topic).catch((error) => {
+      expect(error.response.statusCode).to.equal(404);
+      expect(error.response.body).to.deep.equal({
+        topic,
+        error: "NOT_FOUND"
+      });
+    });
+  });
+
   it("should return the values of multiple topics", function() {
     const topics = _.map(data, "topic");
 

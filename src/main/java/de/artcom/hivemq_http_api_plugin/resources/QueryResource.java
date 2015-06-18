@@ -2,7 +2,6 @@ package de.artcom.hivemq_http_api_plugin.resources;
 
 import com.dcsquare.hivemq.spi.message.RetainedMessage;
 import com.dcsquare.hivemq.spi.services.RetainedMessageStore;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -59,11 +58,11 @@ public class QueryResource {
         Optional<RetainedMessage> optionalMessage = retainedMessageStore.getRetainedMessage(query.topic);
 
         if (!optionalMessage.isPresent()) {
-            return QueryResult.error(NOT_FOUND);
+            return new QueryResultError(query.topic, NOT_FOUND);
         }
 
         RetainedMessage message = optionalMessage.get();
-        return QueryResult.success(
+        return new QueryResultSuccess(
                 message.getTopic(),
                 new String(message.getMessage(), Charset.forName("UTF-8"))
         );
@@ -79,15 +78,11 @@ public class QueryResource {
     }
 
     private Response createSingleResponse(QueryResult result) {
-        if (result.isError()) {
-            return Response.status(result.error).build();
-        } else {
-            try {
-                String json = objectMapper.writeValueAsString(result);
-                return Response.status(OK).entity(json).build();
-            } catch (JsonProcessingException e) {
-                return Response.status(INTERNAL_SERVER_ERROR).build();
-            }
+        try {
+            String json = objectMapper.writeValueAsString(result);
+            return Response.status(result.getStatus()).entity(json).build();
+        } catch (JsonProcessingException e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -105,28 +100,4 @@ public class QueryResource {
         public int depth;
     }
 
-    public static class QueryResult {
-        public static QueryResult success(String topic, String payload) {
-            QueryResult result = new QueryResult();
-            result.topic = topic;
-            result.payload = payload;
-            result.error = null;
-            return result;
-        }
-
-        public static QueryResult error(Response.Status error) {
-            QueryResult result = new QueryResult();
-            result.error = error;
-            return result;
-        }
-
-        @JsonIgnore
-        public boolean isError() {
-            return error != null;
-        }
-
-        public String topic;
-        public String payload;
-        public Response.Status error;
-    }
 }
