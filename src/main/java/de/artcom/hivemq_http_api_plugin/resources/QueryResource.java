@@ -1,13 +1,10 @@
 package de.artcom.hivemq_http_api_plugin.resources;
 
-import com.dcsquare.hivemq.spi.message.RetainedMessage;
-import com.dcsquare.hivemq.spi.services.RetainedMessageStore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +14,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.List;
 
 import static javax.ws.rs.core.Response.Status.*;
@@ -27,12 +23,12 @@ public class QueryResource {
     private static final Logger LOG = LoggerFactory.getLogger(QueryResource.class);
 
     private final ObjectMapper objectMapper;
-    private final RetainedMessageStore retainedMessageStore;
+    private final QueryProcessor queryProcessor;
 
     @Inject
-    public QueryResource(RetainedMessageStore retainedMessageStore) {
+    public QueryResource(QueryProcessor queryProcessor) {
         this.objectMapper = new ObjectMapper();
-        this.retainedMessageStore = retainedMessageStore;
+        this.queryProcessor = queryProcessor;
     }
 
     @POST
@@ -55,17 +51,7 @@ public class QueryResource {
     }
 
     private QueryResult singleQuery(Query query) {
-        Optional<RetainedMessage> optionalMessage = retainedMessageStore.getRetainedMessage(query.topic);
-
-        if (!optionalMessage.isPresent()) {
-            return new QueryResultError(query.topic, NOT_FOUND);
-        }
-
-        RetainedMessage message = optionalMessage.get();
-        return new QueryResultSuccess(
-                message.getTopic(),
-                new String(message.getMessage(), Charset.forName("UTF-8"))
-        );
+        return queryProcessor.process(query);
     }
 
     private List<QueryResult> batchQuery(List<Query> queries) {
@@ -93,11 +79,6 @@ public class QueryResource {
         } catch (JsonProcessingException e) {
             return Response.status(INTERNAL_SERVER_ERROR).build();
         }
-    }
-
-    public static class Query {
-        public String topic;
-        public int depth;
     }
 
 }
