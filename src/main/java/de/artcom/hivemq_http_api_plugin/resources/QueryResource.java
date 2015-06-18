@@ -46,7 +46,7 @@ public class QueryResource {
                 return createSingleResponse(singleQuery(query));
             } else if (json.isArray()) {
                 List<Query> queries = objectMapper.readValue(body, new TypeReference<List<Query>>() {});
-                return createBulkResponse(bulkQuery(queries));
+                return createBatchResponse(batchQuery(queries));
             }
         } catch (IOException e) {
         }
@@ -68,7 +68,7 @@ public class QueryResource {
         );
     }
 
-    private List<QueryResult> bulkQuery(List<Query> queries) {
+    private List<QueryResult> batchQuery(List<Query> queries) {
         return Lists.transform(queries, new Function<Query, QueryResult>() {
             @Override
             public QueryResult apply(Query query) {
@@ -86,7 +86,7 @@ public class QueryResource {
         }
     }
 
-    private Response createBulkResponse(List<QueryResult> results) {
+    private Response createBatchResponse(List<QueryResult> results) {
         try {
             String json = objectMapper.writeValueAsString(results);
             return Response.status(OK).entity(json).build();

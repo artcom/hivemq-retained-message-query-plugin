@@ -43,7 +43,7 @@ describe("HTTP API", function() {
     return request.post(`http://${brokerUrl}:8080/query`, { json: query });
   };
 
-  describe("single topics", function() {
+  describe("Single Queries", function() {
     it("should return the payload of a topic", function() {
       const { topic, payload } = data[0];
 
@@ -65,8 +65,8 @@ describe("HTTP API", function() {
     });
   });
 
-  describe("multiple topics", function() {
-    it("should return the payloads of multiple topics", function() {
+  describe("Batch Queries", function() {
+    it("should return the values of multiple topics", function() {
       const topics = _.map(data, "topic");
 
       return sendQuery(topics).then((results) => {
@@ -74,7 +74,7 @@ describe("HTTP API", function() {
       });
     });
 
-    it("should return payloads and errors for multiple topics", function() {
+    it("should return values and errors for multiple topics", function() {
       const inexistent = `${prefix}/does-not-exist`;
 
       return sendQuery([data[0].topic, inexistent]).then((results) => {
