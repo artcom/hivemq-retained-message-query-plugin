@@ -43,31 +43,46 @@ describe("HTTP API", function() {
     return request.post(`http://${brokerUrl}:8080/query`, { json: query });
   };
 
-  it("should return the payload of a topic", function() {
-    const { topic, payload } = data[0];
+  describe("single topics", function() {
+    it("should return the payload of a topic", function() {
+      const { topic, payload } = data[0];
 
-    return sendQuery(topic).then((result) => {
-      expect(result).to.deep.equal({ topic, payload });
+      return sendQuery(topic).then((result) => {
+        expect(result).to.deep.equal({ topic, payload });
+      });
     });
-  });
 
-  it("should return error for inexistent topic", function() {
-    const topic = `${prefix}/does-not-exist`;
+    it("should return error for inexistent topic", function() {
+      const topic = `${prefix}/does-not-exist`;
 
-    return sendQuery(topic).catch((error) => {
-      expect(error.response.statusCode).to.equal(404);
-      expect(error.response.body).to.deep.equal({
-        topic,
-        error: "NOT_FOUND"
+      return sendQuery(topic).catch((error) => {
+        expect(error.response.statusCode).to.equal(404);
+        expect(error.response.body).to.deep.equal({
+          topic,
+          error: "NOT_FOUND"
+        });
       });
     });
   });
 
-  it("should return the values of multiple topics", function() {
-    const topics = _.map(data, "topic");
+  describe("multiple topics", function() {
+    it("should return the payloads of multiple topics", function() {
+      const topics = _.map(data, "topic");
 
-    return sendQuery(topics).then((results) => {
-      expect(results).to.deep.equal(data);
+      return sendQuery(topics).then((results) => {
+        expect(results).to.deep.equal(data);
+      });
+    });
+
+    it("should return payloads and errors for multiple topics", function() {
+      const inexistent = `${prefix}/does-not-exist`;
+
+      return sendQuery([data[0].topic, inexistent]).then((results) => {
+        expect(results).to.deep.equal([
+          data[0],
+          { topic: inexistent, error: "NOT_FOUND" }
+        ]);
+      });
     });
   });
 });
