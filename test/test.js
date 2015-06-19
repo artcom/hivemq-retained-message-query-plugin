@@ -1,9 +1,13 @@
 "use strict";
 
-const expect = require("chai").expect;
+const chai = require("chai");
 const mqtt = require("mqtt");
+const Promise = require("bluebird");
 const request = require("request-promise");
 const _ = require("lodash");
+
+chai.use(require("chai-as-promised"));
+const expect = chai.expect;
 
 const BROKER_URL = process.env.BROKER || "localhost";
 
@@ -24,8 +28,12 @@ function batchQuery(topics) {
 describe("HTTP API", function() {
   let client;
 
+  function publish(topic, value) {
+    return client.publishAsync(topic, value, { retain: true, qos: 2 });
+  }
+
   before(function(done) {
-    client = mqtt.connect(`mqtt://${BROKER_URL}`);
+    client = Promise.promisifyAll(mqtt.connect(`mqtt://${BROKER_URL}`));
     client.on("connect", done);
   });
 
@@ -37,15 +45,15 @@ describe("HTTP API", function() {
       { topic: `${this.prefix}/topic2`, payload: "bar" }
     ];
 
-    _.forEach(this.data, ({ topic, payload }) => {
-      client.publish(topic, payload, { retain: true });
-    });
+    return Promise.all(_.map(this.data, ({ topic, payload }) =>
+      publish(topic, payload)
+    ));
   });
 
   afterEach(function() {
-    _.forEach(this.data, ({ topic }) => {
-      client.publish(topic, null, { retain: true });
-    });
+    return Promise.all(_.map(this.data, ({ topic }) =>
+      publish(topic, null)
+    ));
   });
 
   after(function() {
@@ -55,17 +63,34 @@ describe("HTTP API", function() {
   describe("Single Queries", function() {
     it("should return the payload of a topic", function() {
       const { topic, payload } = this.data[0];
-
-      return singleQuery(topic).then((result) => {
-        expect(result).to.deep.equal({ topic, payload });
-      });
+      const query = singleQuery(topic);
+      return expect(query).to.eventually.deep.equal({ topic, payload });
     });
 
     it("should return error for inexistent topic", function() {
-      return singleQuery(this.missingTopic).catch((error) => {
+      return singleQuery(this.missingTopic).then(() => {
+        throw new chai.AssertionError("Promise was expected to be rejected.");
+      }, (error) => {
         expect(error.response.statusCode).to.equal(404);
         expect(error.response.body).to.deep.equal({
           topic: this.missingTopic,
+          error: "NOT_FOUND"
+        });
+      });
+    });
+
+    it("should return error for unpublished topic", function() {
+      const { topic } = this.data[0];
+
+      return publish(topic, null).then(() => {
+        return singleQuery(topic);
+      }).then(() => {
+        throw new chai.AssertionError("Promise was expected to be rejected.");
+      }, (error) => {
+        console.log("GOT ERROR");
+        expect(error.response.statusCode).to.equal(404);
+        expect(error.response.body).to.deep.equal({
+          topic: topic,
           error: "NOT_FOUND"
         });
       });
@@ -75,19 +100,17 @@ describe("HTTP API", function() {
   describe("Batch Queries", function() {
     it("should return the values of multiple topics", function() {
       const topics = _.map(this.data, "topic");
-
-      return batchQuery(topics).then((results) => {
-        expect(results).to.deep.equal(this.data);
-      });
+      const query = batchQuery(topics);
+      return expect(query).to.eventually.deep.equal(this.data);
     });
 
     it("should return values and errors for multiple topics", function() {
-      return batchQuery([this.data[0].topic, this.missingTopic]).then((results) => {
-        expect(results).to.deep.equal([
-          this.data[0],
-          { topic: this.missingTopic, error: "NOT_FOUND" }
-        ]);
-      });
+      const topics = [this.data[0].topic, this.missingTopic];
+      const query = batchQuery(topics);
+      return expect(query).to.eventually.deep.equal([
+        this.data[0],
+        { topic: this.missingTopic, error: "NOT_FOUND" }
+      ]);
     });
   });
 });
