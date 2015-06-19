@@ -41,7 +41,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
     }
 
     private void removeTopic(String topic) {
-
+        root.removeTopic(topic);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             String topic = publish.getTopic();
             byte[] payload = publish.getPayload();
 
-            if (payload == null) {
+            if (payload.length == 0) {
                 removeTopic(topic);
             } else {
                 addTopic(topic, payload);
@@ -78,11 +78,11 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             } else {
                 String name = path.get(0);
 
-                if (create) {
-                    createChild(name);
+                if (create && !children.containsKey(name)) {
+                    children.put(name, new Node());
                 }
 
-                Node child = getChild(name);
+                Node child = children.get(name);
 
                 if (child == null) {
                     return null;
@@ -92,14 +92,30 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             }
         }
 
-        private void createChild(String name) {
-            if (!children.containsKey(name)) {
-                children.put(name, new Node());
-            }
+        private void removeTopic(String topic) {
+            ImmutableList<String> path = ImmutableList.copyOf(topic.split("/"));
+            removeTopic(path);
         }
 
-        private Node getChild(String name) {
-            return children.get(name);
+        private boolean removeTopic(ImmutableList<String> path) {
+            if (path.isEmpty()) {
+                return children.isEmpty();
+            }
+
+            String name = path.get(0);
+            Node child = children.get(name);
+
+            if (child == null) {
+                return false;
+            }
+
+            boolean remove = child.removeTopic(path.subList(1, path.size()));
+
+            if (remove) {
+                children.remove(name);
+            }
+
+            return remove && children.isEmpty() && !payload.isPresent();
         }
 
         public Optional<byte[]> getPayload() {
