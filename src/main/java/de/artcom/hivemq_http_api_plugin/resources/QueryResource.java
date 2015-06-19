@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
@@ -20,14 +21,14 @@ import static javax.ws.rs.core.Response.Status.*;
 
 public class QueryResource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(QueryResource.class);
-
     private final ObjectMapper objectMapper;
     private final QueryProcessor queryProcessor;
 
     @Inject
     public QueryResource(QueryProcessor queryProcessor) {
-        this.objectMapper = new ObjectMapper();
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new GuavaModule());
+
         this.queryProcessor = queryProcessor;
     }
 

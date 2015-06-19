@@ -25,15 +25,18 @@ import javax.inject.Inject;
 public class HttpApiMainClass extends PluginEntryPoint {
 
     private final HttpApiService httpApiService;
+    private final RetainedTopicTree retainedTopicTree;
 
     @Inject
-    public HttpApiMainClass(HttpApiService httpApiService) {
+    public HttpApiMainClass(HttpApiService httpApiService, RetainedTopicTree retainedTopicTree) {
         this.httpApiService = httpApiService;
+        this.retainedTopicTree = retainedTopicTree;
     }
 
     @PostConstruct
     public void postConstruct() {
         CallbackRegistry callbackRegistry = getCallbackRegistry();
         callbackRegistry.addCallback(httpApiService);
+        callbackRegistry.addCallback(retainedTopicTree);
     }
 }
