@@ -28,10 +28,6 @@ function batchQuery(topics) {
 describe("HTTP API", function() {
   let client;
 
-  function publish(topic, value) {
-    return client.publishAsync(topic, value, { retain: true, qos: 2 });
-  }
-
   before(function(done) {
     client = Promise.promisifyAll(mqtt.connect(`mqtt://${BROKER_URL}`));
     client.on("connect", done);
@@ -44,15 +40,21 @@ describe("HTTP API", function() {
       { topic: `${this.prefix}/topic1`, payload: "foo" },
       { topic: `${this.prefix}/topic2`, payload: "bar" }
     ];
+    this.published = [];
+
+    this.publish = function(topic, value) {
+      this.published.push(topic);
+      return client.publishAsync(topic, value, { retain: true, qos: 2 });
+    };
 
     return Promise.all(_.map(this.data, ({ topic, payload }) =>
-      publish(topic, payload)
+      this.publish(topic, payload)
     ));
   });
 
   afterEach(function() {
-    return Promise.all(_.map(this.data, ({ topic }) =>
-      publish(topic, null)
+    return Promise.all(_.map(this.published, (topic) =>
+      this.publish(topic, null)
     ));
   });
 
@@ -82,7 +84,7 @@ describe("HTTP API", function() {
     it("should return error for unpublished topic", function() {
       const { topic } = this.data[0];
 
-      return publish(topic, null).then(() => {
+      return this.publish(topic, null).then(() => {
         return singleQuery(topic);
       }).then(() => {
         throw new chai.AssertionError("Promise was expected to be rejected.");
@@ -115,7 +117,7 @@ describe("HTTP API", function() {
         const parent = this.data[1];
         const child = { topic: parent.topic + "/deepTopic", payload: "baz" };
 
-        const query = publish(child.topic, child.payload).then(() => {
+        const query = this.publish(child.topic, child.payload).then(() => {
           return singleQuery(this.prefix, 2);
         });
 
