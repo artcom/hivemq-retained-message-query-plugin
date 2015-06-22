@@ -97,28 +97,30 @@ describe("HTTP API", function() {
 
     describe("with Depth Parameter", function() {
       it("should return the payload of immediate children", function() {
-        return singleQuery(this.prefix, 1).then((result) => {
-          expect(result).to.contain.all.keys(["topic", "children"]);
-          expect(result.topic).to.equal(this.prefix);
-          expect(result.children).to.have.length(2);
-          expect(result.children).to.include(this.data[0]);
-          expect(result.children).to.include(this.data[1]);
+        const query = singleQuery(this.prefix, 1);
+
+        return expect(query).to.eventually.deep.equal({
+          topic: this.prefix,
+          children: this.data
         });
       });
 
       it("should return the payload of deeper children", function() {
         const parent = this.data[1];
         const child = { topic: parent.topic + "/deepTopic", payload: "baz" };
-        return publish(child.topic, child.payload).then(() => {
+
+        const query = publish(child.topic, child.payload).then(() => {
           return singleQuery(this.prefix, 2);
-        }).then((result) => {
-          expect(result).to.contain.all.keys(["topic", "children"]);
-          expect(result.topic).to.equal(this.prefix);
-          expect(result.children).to.have.length(2);
-          expect(result.children).to.include(this.data[0]);
-          expect(result.children).to.include(Object.assign({}, this.data[1], {
-            children: [child]
-          }));
+        });
+
+        return expect(query).to.eventually.deep.equal({
+          topic: this.prefix,
+          children: [
+            this.data[0],
+            _.assign({}, this.data[1], {
+              children: [child]
+            })
+          ]
         });
       });
     });

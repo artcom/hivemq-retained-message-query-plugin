@@ -12,9 +12,9 @@ import com.google.common.collect.ImmutableMap;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 @Singleton
 public class RetainedTopicTree implements OnPublishReceivedCallback {
@@ -66,7 +66,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
 
     public static class Node {
         private Optional<byte[]> payload = Optional.absent();
-        private Map<String, Node> children = new HashMap<String, Node>();
+        private Map<String, Node> children = new TreeMap<String, Node>();
 
         private Node getOrCreateTopic(String topic, boolean create) {
             ImmutableList<String> path = ImmutableList.copyOf(topic.split("/"));
