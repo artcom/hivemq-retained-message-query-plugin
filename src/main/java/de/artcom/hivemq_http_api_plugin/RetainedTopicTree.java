@@ -8,13 +8,12 @@ import com.dcsquare.hivemq.spi.security.ClientData;
 import com.dcsquare.hivemq.spi.services.RetainedMessageStore;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedMap;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Singleton
 public class RetainedTopicTree implements OnPublishReceivedCallback {
@@ -62,7 +61,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
 
     public static class Node {
         private Optional<byte[]> payload = Optional.absent();
-        private Map<String, Node> children = new TreeMap<String, Node>();
+        private ConcurrentHashMap<String, Node> children = new ConcurrentHashMap<String, Node>();
 
         private Node getOrCreateTopic(String topic, boolean create) {
             ImmutableList<String> path = ImmutableList.copyOf(topic.split("/"));
@@ -75,8 +74,8 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             } else {
                 String name = path.get(0);
 
-                if (create && !children.containsKey(name)) {
-                    children.put(name, new Node());
+                if (create) {
+                    children.putIfAbsent(name, new Node());
                 }
 
                 Node child = children.get(name);
@@ -127,8 +126,8 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             return !children.isEmpty();
         }
 
-        public ImmutableMap<String, Node> getChildren() {
-            return ImmutableMap.copyOf(children);
+        public ImmutableSortedMap<String, Node> getChildren() {
+            return ImmutableSortedMap.copyOf(children);
         }
     }
 }
