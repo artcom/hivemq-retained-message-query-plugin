@@ -28,16 +28,12 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
         }
     }
 
-    public Node createTopic(String topic) {
-        return root.getOrCreateTopic(topic, true);
-    }
-
     public Node getTopic(String topic) {
         return root.getOrCreateTopic(topic, false);
     }
 
     private void addTopic(String topic, byte[] payload) {
-        Node node = createTopic(topic);
+        Node node = root.getOrCreateTopic(topic, true);
         node.setPayload(payload);
     }
 
