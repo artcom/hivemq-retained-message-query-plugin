@@ -127,6 +127,10 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             this.payload = Optional.of(payload);
         }
 
+        public boolean hasChildren() {
+            return !children.isEmpty();
+        }
+
         public ImmutableMap<String, Node> getChildren() {
             return ImmutableMap.copyOf(children);
         }

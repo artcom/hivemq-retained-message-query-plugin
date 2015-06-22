@@ -105,6 +105,22 @@ describe("HTTP API", function() {
           expect(result.children).to.include(this.data[1]);
         });
       });
+
+      it("should return the payload of deeper children", function() {
+        const parent = this.data[1];
+        const child = { topic: parent.topic + "/deepTopic", payload: "baz" };
+        return publish(child.topic, child.payload).then(() => {
+          return singleQuery(this.prefix, 2);
+        }).then((result) => {
+          expect(result).to.contain.all.keys(["topic", "children"]);
+          expect(result.topic).to.equal(this.prefix);
+          expect(result.children).to.have.length(2);
+          expect(result.children).to.include(this.data[0]);
+          expect(result.children).to.include(Object.assign({}, this.data[1], {
+            children: [child]
+          }));
+        });
+      });
     });
   });
 

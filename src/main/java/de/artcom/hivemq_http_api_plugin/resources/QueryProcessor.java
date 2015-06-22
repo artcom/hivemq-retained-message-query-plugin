@@ -40,7 +40,7 @@ public class QueryProcessor {
     private QueryResultSuccess createResult(RetainedTopicTree.Node node, String topic, int depth) {
         List<QueryResultSuccess> children = null;
 
-        if (depth > 0) {
+        if (depth > 0 && node.hasChildren()) {
             children = new ArrayList<QueryResultSuccess>();
 
             for (Map.Entry<String, RetainedTopicTree.Node> entry : node.getChildren().entrySet()) {
