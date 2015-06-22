@@ -22,6 +22,9 @@ import com.dcsquare.hivemq.spi.plugin.meta.Information;
 import com.google.inject.Provider;
 import org.apache.commons.configuration.AbstractConfiguration;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import static com.dcsquare.hivemq.spi.config.Configurations.noConfigurationNeeded;
 
 
@@ -34,7 +37,9 @@ public class HttpApiPluginModule extends HiveMQPluginModule {
     }
 
     @Override
-    protected void configurePlugin() {}
+    protected void configurePlugin() {
+        bind(ExecutorService.class).toInstance(Executors.newCachedThreadPool());
+    }
 
     @Override
     protected Class<? extends PluginEntryPoint> entryPointClass() {

@@ -14,13 +14,17 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 
 @Singleton
 public class RetainedTopicTree implements OnPublishReceivedCallback {
     private final Node root = new Node();
+    private final ExecutorService executorService;
 
     @Inject
-    public RetainedTopicTree(RetainedMessageStore retainedMessageStore) {
+    public RetainedTopicTree(ExecutorService executorService, RetainedMessageStore retainedMessageStore) {
+        this.executorService = executorService;
+
         Set<RetainedMessage> messages = retainedMessageStore.getRetainedMessages();
         for (RetainedMessage message : messages) {
             addTopic(message.getTopic(), message.getMessage());
@@ -41,17 +45,22 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
     }
 
     @Override
-    public void onPublishReceived(PUBLISH publish, ClientData clientData) throws OnPublishReceivedException {
-        if (publish.isRetain()) {
-            String topic = publish.getTopic();
-            byte[] payload = publish.getPayload();
+    public void onPublishReceived(final PUBLISH publish, ClientData clientData) throws OnPublishReceivedException {
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                if (publish.isRetain()) {
+                    String topic = publish.getTopic();
+                    byte[] payload = publish.getPayload();
 
-            if (payload.length == 0) {
-                removeTopic(topic);
-            } else {
-                addTopic(topic, payload);
+                    if (payload.length == 0) {
+                        removeTopic(topic);
+                    } else {
+                        addTopic(topic, payload);
+                    }
+                }
             }
-        }
+        });
     }
 
     @Override
