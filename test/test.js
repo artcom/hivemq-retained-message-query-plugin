@@ -87,11 +87,22 @@ describe("HTTP API", function() {
       }).then(() => {
         throw new chai.AssertionError("Promise was expected to be rejected.");
       }, (error) => {
-        console.log("GOT ERROR");
         expect(error.response.statusCode).to.equal(404);
         expect(error.response.body).to.deep.equal({
           topic: topic,
           error: "NOT_FOUND"
+        });
+      });
+    });
+
+    describe("with Depth Parameter", function() {
+      it("should return the payload of immediate children", function() {
+        return singleQuery(this.prefix, 1).then((result) => {
+          expect(result).to.contain.all.keys(["topic", "children"]);
+          expect(result.topic).to.equal(this.prefix);
+          expect(result.children).to.have.length(2);
+          expect(result.children).to.include(this.data[0]);
+          expect(result.children).to.include(this.data[1]);
         });
       });
     });

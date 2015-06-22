@@ -8,6 +8,7 @@ import com.dcsquare.hivemq.spi.security.ClientData;
 import com.dcsquare.hivemq.spi.services.RetainedMessageStore;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -124,6 +125,10 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
 
         public void setPayload(byte[] payload) {
             this.payload = Optional.of(payload);
+        }
+
+        public ImmutableMap<String, Node> getChildren() {
+            return ImmutableMap.copyOf(children);
         }
     }
 }
