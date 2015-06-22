@@ -103,10 +103,10 @@ describe("HTTP API", function() {
       });
 
       it("should return the payload of immediate children", function() {
-        const query = singleQuery(this.prefix, 1);
-
+        const topic = this.prefix;
+        const query = singleQuery(topic, 1);
         return expect(query).to.eventually.deep.equal({
-          topic: this.prefix,
+          topic,
           children: this.data
         });
       });
