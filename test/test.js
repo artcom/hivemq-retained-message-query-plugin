@@ -101,7 +101,7 @@ describe("HTTP API", function() {
       it("should return empty result for intermediary topic", function() {
         const topic = this.prefix;
         const query = singleQuery(topic, 0);
-        expect(query).to.eventually.deep.equal({ topic });
+        return expect(query).to.eventually.deep.equal({ topic });
       });
 
       it("should return the payload of immediate children", function() {
