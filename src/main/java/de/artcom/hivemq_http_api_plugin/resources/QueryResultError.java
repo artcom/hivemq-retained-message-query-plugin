@@ -12,15 +12,20 @@ import javax.ws.rs.core.Response;
 public class QueryResultError implements QueryResult {
     private final Optional<String> topic;
     private final Response.Status error;
+    private final Optional<String> message;
 
-    public QueryResultError(Response.Status error) {
-        this.topic = Optional.absent();
-        this.error = error;
+    public QueryResultError(Response.Status error, String message) {
+        this(null, error, message);
     }
 
     public QueryResultError(String topic, Response.Status error) {
-        this.topic = Optional.of(topic);
+        this(topic, error, null);
+    }
+
+    public QueryResultError(String topic, Response.Status error, String message) {
+        this.topic = Optional.fromNullable(topic);
         this.error = error;
+        this.message = Optional.fromNullable(message);
     }
 
     @Override @JsonIgnore
@@ -39,5 +44,9 @@ public class QueryResultError implements QueryResult {
 
     public Response.Status getError() {
         return error;
+    }
+
+    public Optional<String> getMessage() {
+        return message;
     }
 }

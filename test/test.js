@@ -192,7 +192,8 @@ describe("HTTP API", function() {
       }, (error) => {
         expect(error.response.statusCode).to.equal(400);
         expect(error.response.body).to.deep.equal({
-          error: "BAD_REQUEST"
+          error: "BAD_REQUEST",
+          message: "The response body must be a JSON object with a 'topic' and optional 'depth' property, or a JSON array of such objects."
         });
       });
     });
@@ -204,7 +205,21 @@ describe("HTTP API", function() {
         expect(error.response.statusCode).to.equal(400);
         expect(error.response.body).to.deep.equal({
           topic: "trailing/slash/",
-          error: "BAD_REQUEST"
+          error: "BAD_REQUEST",
+          message: "The topic cannot end with a slash."
+        });
+      });
+    });
+
+    it("should return an error when using multiple wildcards", function() {
+      return postQuery({ topic: "using/+/multiple/+/wildcards" }).then(() => {
+        throw new chai.AssertionError("Promise was expected to be rejected.");
+      }, (error) => {
+        expect(error.response.statusCode).to.equal(400);
+        expect(error.response.body).to.deep.equal({
+          topic: "using/+/multiple/+/wildcards",
+          error: "BAD_REQUEST",
+          message: "The topic cannot contain more than one wildcard."
         });
       });
     });
