@@ -165,27 +165,50 @@ describe("HTTP API", function() {
   });
 
   describe("Wildcard Queries", function() {
-    this.timeout(60000);
+    beforeEach(function() {
+      this.child1 = `${this.prefix}/topic1/child`;
+      this.child2 = `${this.prefix}/topic2/child`;
 
-    it("should return all matching topics", function() {
-      const topic1 = `${this.prefix}/topic1/extra`;
-      const topic2 = `${this.prefix}/topic2/extra`;
-
-      const query = this.publish(topic1, "one").then(() => {
-        return this.publish(topic2, "two");
-      }).then(() => {
-        return singleQuery(`${this.prefix}/+/extra`);
+      return this.publish(this.child1, "one").then(() => {
+        return this.publish(this.child2, "two");
       });
+    });
 
+    it("should return all children", function() {
+      const query = singleQuery(`${this.prefix}/+`);
+      return expect(query).to.eventually.deep.equal(this.data);
+    });
+
+    it("should return all matching children", function() {
+      const query = singleQuery(`${this.prefix}/+/child`);
       return expect(query).to.eventually.deep.equal([
-        { topic: topic1, payload: "one" },
-        { topic: topic2, payload: "two" }
+        { topic: this.child1, payload: "one" },
+        { topic: this.child2, payload: "two" }
       ]);
     });
 
-    it("should work without suffix", function() {
-      const query = singleQuery(`${this.prefix}/+`);
-      return expect(query).to.eventually.deep.equal(this.data);
+    it("should return all matching deep children", function() {
+      this.deepChild = `${this.prefix}/topic2/deep/child`;
+
+      const query = this.publish(this.deepChild, "deep").then(() => {
+        return singleQuery(`${this.prefix}/+/deep/child`);
+      });
+
+      return expect(query).to.eventually.deep.equal([
+        { topic: this.deepChild, payload: "deep" }
+      ]);
+    });
+
+    it("should support the depth parameter", function() {
+      const query = singleQuery(`${this.prefix}/+`, 1);
+      return expect(query).to.eventually.deep.equal([
+        _.assign({}, this.data[0], {
+          children: [{ topic: this.child1, payload: "one" }]
+        }),
+        _.assign({}, this.data[1], {
+          children: [{ topic: this.child2, payload: "two" }]
+        })
+      ]);
     });
   });
 });
