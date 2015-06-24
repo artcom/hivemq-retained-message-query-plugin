@@ -7,8 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.ws.rs.POST;
@@ -40,10 +38,10 @@ public class QueryResource {
 
             if (json.isObject()) {
                 Query query = objectMapper.readValue(body, Query.class);
-                return createSingleResponse(singleQuery(query));
+                return createResponse(singleQuery(query));
             } else if (json.isArray()) {
                 List<Query> queries = objectMapper.readValue(body, new TypeReference<List<Query>>() {});
-                return createBatchResponse(batchQuery(queries));
+                return createResponse(batchQuery(queries));
             }
         } catch (IOException e) {
         }
@@ -55,31 +53,24 @@ public class QueryResource {
         return queryProcessor.process(query);
     }
 
-    private List<QueryResult> batchQuery(List<Query> queries) {
-        return Lists.transform(queries, new Function<Query, QueryResult>() {
+    private QueryResult batchQuery(List<Query> queries) {
+        List<QueryResult> results = Lists.transform(queries, new Function<Query, QueryResult>() {
             @Override
             public QueryResult apply(Query query) {
                 return singleQuery(query);
             }
         });
+
+        return new QueryResultList(results);
     }
 
-    private Response createSingleResponse(QueryResult result) {
+    private Response createResponse(QueryResult result) {
         try {
-            String json = objectMapper.writeValueAsString(result);
-            return Response.status(result.getStatus()).entity(json).build();
+            Response.Status status = result.getStatus();
+            String json = result.toJSON(objectMapper);
+            return Response.status(status).entity(json).build();
         } catch (JsonProcessingException e) {
             return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
-
-    private Response createBatchResponse(List<QueryResult> results) {
-        try {
-            String json = objectMapper.writeValueAsString(results);
-            return Response.status(OK).entity(json).build();
-        } catch (JsonProcessingException e) {
-            return Response.status(INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
 }
