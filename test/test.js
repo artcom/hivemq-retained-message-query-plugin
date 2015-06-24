@@ -30,7 +30,8 @@ describe("HTTP API", function() {
       return client.publishAsync(topic, value, { retain: true, qos: 2 });
     };
 
-    this.prefix = "test/hivemq-api-" + Date.now();
+    this.topic = "hivemq-api-" + Date.now();
+    this.prefix = "test/" + this.topic;
     return this.publish(this.prefix + "/topic1", "foo").then(() => {
       return this.publish(this.prefix + "/topic2", "bar");
     });
@@ -266,6 +267,13 @@ describe("HTTP API", function() {
             }
           ]
         }
+      ]);
+    });
+
+    it("should support leading wildcard", function() {
+      const query = postQuery({ topic: "+/" + this.topic });
+      return expect(query).to.eventually.deep.equal([
+        { topic: this.prefix }
       ]);
     });
   });

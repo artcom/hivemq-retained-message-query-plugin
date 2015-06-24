@@ -1,7 +1,6 @@
 package de.artcom.hivemq_http_api_plugin.resources;
 
 import com.google.common.base.*;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import de.artcom.hivemq_http_api_plugin.RetainedTopicTree;
 
@@ -64,18 +63,29 @@ public class QueryProcessor {
                 RetainedTopicTree.Node match = childNode.getTopic(suffix);
 
                 if (match != null) {
-                    String topic = prefix + "/" + childName;
-
-                    if (!suffix.isEmpty()) {
-                        topic += "/" + suffix;
-                    }
-
+                    String topic = joinPath(prefix, childName, suffix);
                     results.add(createResult(match, topic, query.depth));
                 }
             }
         }
 
         return new QueryResultList(results);
+    }
+
+    private String joinPath(String prefix, String childName, String suffix) {
+        String topic = "";
+
+        if (!prefix.isEmpty()) {
+            topic += prefix + "/";
+        }
+
+        topic += childName;
+
+        if (!suffix.isEmpty()) {
+            topic += "/" + suffix;
+        }
+
+        return topic;
     }
 
     private QueryResult processSingleQuery(Query query) {
