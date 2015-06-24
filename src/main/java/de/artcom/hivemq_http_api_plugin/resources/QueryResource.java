@@ -33,20 +33,22 @@ public class QueryResource {
     @POST
     @Path("query")
     public Response post(String body) {
+        QueryResult result = new QueryResultError(BAD_REQUEST);
+
         try {
             JsonNode json = objectMapper.readTree(body);
 
             if (json.isObject()) {
                 Query query = objectMapper.readValue(body, Query.class);
-                return createResponse(singleQuery(query));
+                result = singleQuery(query);
             } else if (json.isArray()) {
                 List<Query> queries = objectMapper.readValue(body, new TypeReference<List<Query>>() {});
-                return createResponse(batchQuery(queries));
+                result = batchQuery(queries);
             }
         } catch (IOException e) {
         }
 
-        return Response.status(BAD_REQUEST).build();
+        return createResponse(result);
     }
 
     private QueryResult singleQuery(Query query) {

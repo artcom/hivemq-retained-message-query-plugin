@@ -150,4 +150,17 @@ describe("HTTP API", function() {
       ]);
     });
   });
+
+  describe("Invalid Queries", function() {
+    it("should return an error", function() {
+      return rawQuery({ invalid: "query" }).then(() => {
+        throw new chai.AssertionError("Promise was expected to be rejected.");
+      }, (error) => {
+        expect(error.response.statusCode).to.equal(400);
+        expect(error.response.body).to.deep.equal({
+          error: "BAD_REQUEST"
+        });
+      });
+    });
+  });
 });
