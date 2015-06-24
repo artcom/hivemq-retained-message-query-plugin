@@ -37,7 +37,9 @@ public class QueryProcessor {
     }
 
     public QueryResult process(Query query) {
-        if (query.topic.contains("+")) {
+        if (query.topic.endsWith("/")) {
+            return new QueryResultError(query.topic, BAD_REQUEST);
+        } else if (query.topic.contains("+")) {
             return processWildcardQuery(query);
         } else {
             return processSingleQuery(query);
