@@ -154,6 +154,34 @@ describe("HTTP API", function() {
         { topic: this.prefix + "/does-not-exist", error: "NOT_FOUND" }
       ]);
     });
+
+    it("should support different depth parameters", function() {
+      const query = this.publish(this.prefix + "/topic1/child", "one").then(() => {
+        return this.publish(this.prefix + "/topic2/child", "two");
+      }).then(() => {
+        return postQuery([
+          { topic: this.prefix + "/topic1" },
+          { topic: this.prefix + "/topic2", depth: 1 }
+        ]);
+      });
+
+      return expect(query).to.eventually.deep.equal([
+        {
+          topic: this.prefix + "/topic1",
+          payload: "foo"
+        },
+        {
+          topic: this.prefix + "/topic2",
+          payload: "bar",
+          children: [
+            {
+              topic: this.prefix + "/topic2/child",
+              payload: "two"
+            }
+          ]
+        }
+      ]);
+    });
   });
 
   describe("Invalid Queries", function() {
