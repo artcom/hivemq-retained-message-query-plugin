@@ -17,10 +17,7 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 public class QueryProcessor {
     private static final Splitter WILDCARD_TOPIC_SPLITTER = Splitter
             .on('+')
-            .omitEmptyStrings()
             .trimResults(CharMatcher.is('/'));
-
-    private static final Joiner PATH_JOINER = Joiner.on('/').skipNulls();
 
     private static final Function<byte[], String> PAYLOAD_TO_STRING = new Function<byte[], String>() {
         @Override
@@ -49,18 +46,12 @@ public class QueryProcessor {
     private QueryResult processWildcardQuery(Query query) {
         List<String> parts = Lists.newArrayList(WILDCARD_TOPIC_SPLITTER.split(query.topic));
 
-        if (parts.isEmpty() || parts.size() > 2) {
+        if (parts.size() > 2) {
             return new QueryResultError(query.topic, BAD_REQUEST);
         }
 
         String prefix = parts.get(0);
-        String suffix = null;
-        ImmutableList<String> subPath = ImmutableList.of();
-
-        if (parts.size() > 1) {
-            suffix = parts.get(1);
-            subPath = ImmutableList.copyOf(suffix.split("/"));
-        }
+        String suffix = parts.get(1);
 
         List<QueryResult> results = new ArrayList<QueryResult>();
         RetainedTopicTree.Node node = retainedTopicTree.getTopic(prefix);
@@ -70,10 +61,16 @@ public class QueryProcessor {
                 String childName = entry.getKey();
                 RetainedTopicTree.Node childNode = entry.getValue();
 
-                RetainedTopicTree.Node match = childNode.getSubNode(subPath);
+                RetainedTopicTree.Node match = childNode.getTopic(suffix);
 
                 if (match != null) {
-                    results.add(createResult(match, PATH_JOINER.join(prefix, childName, suffix), query.depth));
+                    String topic = prefix + "/" + childName;
+
+                    if (!suffix.isEmpty()) {
+                        topic += "/" + suffix;
+                    }
+
+                    results.add(createResult(match, topic, query.depth));
                 }
             }
         }

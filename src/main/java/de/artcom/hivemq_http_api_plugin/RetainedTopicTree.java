@@ -32,11 +32,11 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
     }
 
     public Node getTopic(String topic) {
-        return root.getOrCreateTopic(topic, false);
+        return root.getTopic(topic);
     }
 
     private void addTopic(String topic, byte[] payload) {
-        Node node = root.getOrCreateTopic(topic, true);
+        Node node = root.createTopic(topic);
         node.setPayload(payload);
     }
 
@@ -73,72 +73,6 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
         private Optional<byte[]> payload = Optional.absent();
         private ConcurrentHashMap<String, Node> children = new ConcurrentHashMap<String, Node>();
 
-        private Node getOrCreateTopic(String topic, boolean create) {
-            ImmutableList<String> path = ImmutableList.copyOf(topic.split("/"));
-            return getOrCreatePath(path, create);
-        }
-
-        private Node getOrCreatePath(ImmutableList<String> path, boolean create) {
-            if (path.isEmpty()) {
-                return this;
-            } else {
-                String name = path.get(0);
-
-                if (create) {
-                    children.putIfAbsent(name, new Node());
-                }
-
-                Node child = children.get(name);
-
-                if (child == null) {
-                    return null;
-                }
-
-                return child.getOrCreatePath(path.subList(1, path.size()), create);
-            }
-        }
-
-        private void removeTopic(String topic) {
-            ImmutableList<String> path = ImmutableList.copyOf(topic.split("/"));
-            removeTopic(path);
-        }
-
-        private boolean removeTopic(ImmutableList<String> path) {
-            if (path.isEmpty()) {
-                return children.isEmpty();
-            }
-
-            String name = path.get(0);
-            Node child = children.get(name);
-
-            if (child == null) {
-                return false;
-            }
-
-            boolean remove = child.removeTopic(path.subList(1, path.size()));
-
-            if (remove) {
-                children.remove(name);
-            }
-
-            return remove && children.isEmpty() && !payload.isPresent();
-        }
-
-        public Node getSubNode(ImmutableList<String> path) {
-            if (path.isEmpty()) {
-                return this;
-            }
-
-            String name = path.get(0);
-            Node child = children.get(name);
-
-            if (child == null) {
-                return null;
-            }
-
-            return child.getSubNode(path.subList(1, path.size()));
-        }
-
         public Optional<byte[]> getPayload() {
             return payload;
         }
@@ -153,6 +87,70 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
 
         public ImmutableSortedMap<String, Node> getChildren() {
             return ImmutableSortedMap.copyOf(children);
+        }
+
+        public Node getTopic(String topic) {
+            return getPath(toPath(topic));
+        }
+
+        private Node getPath(ImmutableList<String> path) {
+            if (path.isEmpty() || path.get(0).isEmpty()) {
+                return this;
+            }
+
+            String name = path.get(0);
+            Node child = children.get(name);
+
+            if (child == null) {
+                return null;
+            }
+
+            return child.getPath(path.subList(1, path.size()));
+        }
+
+        private Node createTopic(String topic) {
+            return createPath(toPath(topic));
+        }
+
+        private Node createPath(ImmutableList<String> path) {
+            if (path.isEmpty()) {
+                return this;
+            }
+
+            String name = path.get(0);
+            children.putIfAbsent(name, new Node());
+            Node child = children.get(name);
+
+            return child.createPath(path.subList(1, path.size()));
+        }
+
+        private void removeTopic(String topic) {
+            removePath(toPath(topic));
+        }
+
+        private boolean removePath(ImmutableList<String> path) {
+            if (path.isEmpty()) {
+                return children.isEmpty();
+            }
+
+            String name = path.get(0);
+            Node child = children.get(name);
+
+            if (child == null) {
+                return false;
+            }
+
+            boolean remove = child.removePath(path.subList(1, path.size()));
+
+            if (remove) {
+                children.remove(name);
+            }
+
+            return remove && children.isEmpty() && !payload.isPresent();
+        }
+
+        private ImmutableList<String> toPath(String topic) {
+            return ImmutableList.copyOf(topic.split("/"));
         }
     }
 }
