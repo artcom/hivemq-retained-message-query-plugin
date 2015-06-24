@@ -163,4 +163,29 @@ describe("HTTP API", function() {
       });
     });
   });
+
+  describe("Wildcard Queries", function() {
+    this.timeout(60000);
+
+    it("should return all matching topics", function() {
+      const topic1 = `${this.prefix}/topic1/extra`;
+      const topic2 = `${this.prefix}/topic2/extra`;
+
+      const query = this.publish(topic1, "one").then(() => {
+        return this.publish(topic2, "two");
+      }).then(() => {
+        return singleQuery(`${this.prefix}/+/extra`);
+      });
+
+      return expect(query).to.eventually.deep.equal([
+        { topic: topic1, payload: "one" },
+        { topic: topic2, payload: "two" }
+      ]);
+    });
+
+    it("should work without suffix", function() {
+      const query = singleQuery(`${this.prefix}/+`);
+      return expect(query).to.eventually.deep.equal(this.data);
+    });
+  });
 });

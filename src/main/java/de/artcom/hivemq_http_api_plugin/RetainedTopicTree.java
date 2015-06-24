@@ -123,6 +123,21 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             return remove && children.isEmpty() && !payload.isPresent();
         }
 
+        public Node getSubNode(ImmutableList<String> path) {
+            if (path.isEmpty()) {
+                return this;
+            }
+
+            String name = path.get(0);
+            Node child = children.get(name);
+
+            if (child == null) {
+                return null;
+            }
+
+            return child.getSubNode(path.subList(1, path.size()));
+        }
+
         public Optional<byte[]> getPayload() {
             return payload;
         }
