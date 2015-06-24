@@ -79,7 +79,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
         }
 
         private Node getOrCreatePath(ImmutableList<String> path, boolean create) {
-            if (path.size() == 0) {
+            if (path.isEmpty()) {
                 return this;
             } else {
                 String name = path.get(0);
