@@ -65,7 +65,7 @@ public class QueryProcessor {
                 String childName = entry.getKey();
                 RetainedTopicTree.Node childNode = entry.getValue();
 
-                RetainedTopicTree.Node match = childNode.getTopic(suffix);
+                RetainedTopicTree.Node match = retainedTopicTree.getTopic(suffix, childNode);
 
                 if (match != null) {
                     String topic = joinPath(prefix, childName, suffix);

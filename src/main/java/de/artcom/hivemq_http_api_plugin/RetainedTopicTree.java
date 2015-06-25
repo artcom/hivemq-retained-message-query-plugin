@@ -15,11 +15,13 @@ import javax.inject.Singleton;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Singleton
 public class RetainedTopicTree implements OnPublishReceivedCallback {
     private final Node root = new Node();
     private final ExecutorService executorService;
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     @Inject
     public RetainedTopicTree(ExecutorService executorService, RetainedMessageStore retainedMessageStore) {
@@ -32,16 +34,27 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
     }
 
     public Node getTopic(String topic) {
-        return root.getTopic(topic);
+        return getTopic(topic, root);
+    }
+
+    public Node getTopic(String topic, Node parent) {
+        lock.readLock().lock();
+        Node node = parent.getTopic(topic);
+        lock.readLock().unlock();
+        return node;
     }
 
     private void addTopic(String topic, byte[] payload) {
+        lock.writeLock().lock();
         Node node = root.createTopic(topic);
         node.setPayload(payload);
+        lock.writeLock().unlock();
     }
 
     private void removeTopic(String topic) {
+        lock.writeLock().lock();
         root.removeTopic(topic);
+        lock.writeLock().unlock();
     }
 
     @Override
@@ -89,7 +102,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             return ImmutableSortedMap.copyOf(children);
         }
 
-        public Node getTopic(String topic) {
+        private Node getTopic(String topic) {
             return getPath(toPath(topic));
         }
 
