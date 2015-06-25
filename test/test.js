@@ -29,23 +29,26 @@ describe("HTTP API", function() {
   });
 
   beforeEach(function() {
-    this.published = [];
-    this.publish = function(topic, value) {
-      this.published.push(topic);
-      return client.publishAsync(topic, value, { retain: true, qos: 2 });
+    this.unpublishAll = {};
+
+    this.publish = function(data) {
+      _.assign(this.unpublishAll, _.mapValues(data, _.constant(null)));
+      return Promise.all(_.map(data, (payload, topic) =>
+        client.publishAsync(topic, payload, { retain: true, qos: 2 })
+      ));
     };
 
     this.topic = "hivemq-api-" + Date.now();
     this.prefix = "test/" + this.topic;
-    return this.publish(this.prefix + "/topic1", "foo").then(() => {
-      return this.publish(this.prefix + "/topic2", "bar");
+
+    return this.publish({
+      [this.prefix + "/topic1"]: "foo",
+      [this.prefix + "/topic2"]: "bar"
     });
   });
 
   afterEach(function() {
-    return Promise.all(_.map(this.published, (topic) =>
-      this.publish(topic, null)
-    ));
+    this.publish(this.unpublishAll);
   });
 
   after(function() {
@@ -74,7 +77,9 @@ describe("HTTP API", function() {
     });
 
     it("should return error for unpublished topic", function() {
-      const query = this.publish(this.prefix + "/topic1", null).then(() => {
+      const query = this.publish({
+        [this.prefix + "/topic1"]: null
+      }).then(() => {
         return postErrorQuery({ topic: this.prefix + "/topic1" });
       });
 
@@ -106,9 +111,9 @@ describe("HTTP API", function() {
       });
 
       it("should return the payload of deeper children", function() {
-        const query = this.publish(
-          this.prefix + "/topic2/deepTopic", "baz"
-        ).then(() => {
+        const query = this.publish({
+          [this.prefix + "/topic2/deepTopic"]: "baz"
+        }).then(() => {
           return postQuery({ topic: this.prefix, depth: 2 });
         });
 
@@ -161,8 +166,9 @@ describe("HTTP API", function() {
     });
 
     it("should support different depth parameters", function() {
-      const query = this.publish(this.prefix + "/topic1/child", "one").then(() => {
-        return this.publish(this.prefix + "/topic2/child", "two");
+      const query = this.publish({
+        [this.prefix + "/topic1/child"]: "one",
+        [this.prefix + "/topic2/child"]: "two"
       }).then(() => {
         return postQuery([
           { topic: this.prefix + "/topic1" },
@@ -240,8 +246,9 @@ describe("HTTP API", function() {
 
   describe("Wildcard Queries", function() {
     beforeEach(function() {
-      return this.publish(this.prefix + "/topic1/child", "one").then(() => {
-        return this.publish(this.prefix + "/topic2/child", "two");
+      return this.publish({
+        [this.prefix + "/topic1/child"]: "one",
+        [this.prefix + "/topic2/child"]: "two"
       });
     });
 
@@ -262,9 +269,9 @@ describe("HTTP API", function() {
     });
 
     it("should return all matching deep children", function() {
-      const query = this.publish(
-        this.prefix + "/topic2/deep/child", "deep"
-      ).then(() => {
+      const query = this.publish({
+        [this.prefix + "/topic2/deep/child"]: "deep"
+      }).then(() => {
         return postQuery({ topic: this.prefix + "/+/deep/child" });
       });
 
