@@ -4,7 +4,7 @@
 
     <groupId>de.artcom</groupId>
     <artifactId>hivemq-http-api-plugin</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1.0</version>
 
 
     <dependencies>
