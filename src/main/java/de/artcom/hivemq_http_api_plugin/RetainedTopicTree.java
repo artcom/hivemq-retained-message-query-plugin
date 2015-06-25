@@ -12,8 +12,8 @@ import com.google.common.collect.ImmutableSortedMap;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.HashMap;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -84,7 +84,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
 
     public static class Node {
         private Optional<byte[]> payload = Optional.absent();
-        private ConcurrentHashMap<String, Node> children = new ConcurrentHashMap<String, Node>();
+        private HashMap<String, Node> children = new HashMap<String, Node>();
 
         public Optional<byte[]> getPayload() {
             return payload;
@@ -131,7 +131,11 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             }
 
             String name = path.get(0);
-            children.putIfAbsent(name, new Node());
+
+            if (!children.containsKey(name)) {
+                children.put(name, new Node());
+            }
+
             Node child = children.get(name);
 
             return child.createPath(path.subList(1, path.size()));

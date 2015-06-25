@@ -38,7 +38,7 @@ public class HttpApiPluginModule extends HiveMQPluginModule {
 
     @Override
     protected void configurePlugin() {
-        bind(ExecutorService.class).toInstance(Executors.newCachedThreadPool());
+        bind(ExecutorService.class).toInstance(Executors.newSingleThreadExecutor());
     }
 
     @Override
