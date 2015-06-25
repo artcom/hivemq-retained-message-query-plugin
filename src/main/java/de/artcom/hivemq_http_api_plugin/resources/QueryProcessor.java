@@ -14,8 +14,6 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 public class QueryProcessor {
-    private static final String ERROR_MESSAGE_TRAILING_SLASH = "The topic cannot end with a slash.";
-    public static final String ERROR_MESSAGE_MULTIPLE_WILDCARDS = "The topic cannot contain more than one wildcard.";
 
     private static final Splitter WILDCARD_TOPIC_SPLITTER = Splitter
             .on('+')
@@ -37,7 +35,7 @@ public class QueryProcessor {
 
     public QueryResult process(Query query) {
         if (query.topic.endsWith("/")) {
-            return new QueryResultError(query.topic, BAD_REQUEST, ERROR_MESSAGE_TRAILING_SLASH);
+            return new QueryResultError(query.topic, BAD_REQUEST, ErrorMessage.TRAILING_SLASH);
         } else if (query.topic.contains("+")) {
             return processWildcardQuery(query);
         } else {
@@ -49,7 +47,7 @@ public class QueryProcessor {
         List<String> parts = Lists.newArrayList(WILDCARD_TOPIC_SPLITTER.split(query.topic));
 
         if (parts.size() > 2) {
-            return new QueryResultError(query.topic, BAD_REQUEST, ERROR_MESSAGE_MULTIPLE_WILDCARDS);
+            return new QueryResultError(query.topic, BAD_REQUEST, ErrorMessage.MULTIPLE_WILDCARDS);
         }
 
         String prefix = parts.get(0);

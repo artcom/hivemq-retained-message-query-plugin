@@ -18,8 +18,6 @@ import java.util.List;
 import static javax.ws.rs.core.Response.Status.*;
 
 public class QueryResource {
-    private static final String ERROR_MESSAGE_QUERY_JSON = "The response body must be a JSON object with a 'topic' and optional 'depth' property, or a JSON array of such objects.";
-
     private final ObjectMapper objectMapper;
     private final QueryProcessor queryProcessor;
 
@@ -34,7 +32,7 @@ public class QueryResource {
     @POST
     @Path("query")
     public Response post(String body) {
-        QueryResult result = new QueryResultError(BAD_REQUEST, ERROR_MESSAGE_QUERY_JSON);
+        QueryResult result = new QueryResultError(BAD_REQUEST, ErrorMessage.JSON_FORMAT);
 
         try {
             JsonNode json = objectMapper.readTree(body);

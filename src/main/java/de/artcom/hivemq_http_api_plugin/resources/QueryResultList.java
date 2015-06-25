@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
+import static javax.ws.rs.core.Response.Status.OK;
+
 public class QueryResultList implements QueryResult {
 
     private final List<QueryResult> results;
@@ -16,7 +18,7 @@ public class QueryResultList implements QueryResult {
 
     @Override
     public Response.Status getStatus() {
-        return Response.Status.OK;
+        return OK;
     }
 
     @Override
