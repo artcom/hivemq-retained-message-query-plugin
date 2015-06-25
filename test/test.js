@@ -223,6 +223,19 @@ describe("HTTP API", function() {
         });
       });
     });
+
+    it("should return an error for negative depth values", function() {
+      return postQuery({ topic: this.prefix, depth: -1 }).then(() => {
+        throw new chai.AssertionError("Promise was expected to be rejected.");
+      }, (error) => {
+        expect(error.response.statusCode).to.equal(400);
+        expect(error.response.body).to.deep.equal({
+          topic: this.prefix,
+          error: "BAD_REQUEST",
+          message: "The depth parameter cannot be negative."
+        });
+      });
+    });
   });
 
   describe("Wildcard Queries", function() {

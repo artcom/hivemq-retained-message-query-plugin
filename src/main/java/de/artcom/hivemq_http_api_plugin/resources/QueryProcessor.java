@@ -36,7 +36,11 @@ public class QueryProcessor {
     public QueryResult process(Query query) {
         if (query.topic.endsWith("/")) {
             return new QueryResultError(query.topic, BAD_REQUEST, ErrorMessage.TRAILING_SLASH);
-        } else if (query.topic.contains("+")) {
+        } else if (query.depth < 0) {
+            return new QueryResultError(query.topic, BAD_REQUEST, ErrorMessage.NEGATIVE_DEPTH);
+        }
+
+        if (query.topic.contains("+")) {
             return processWildcardQuery(query);
         } else {
             return processSingleQuery(query);
