@@ -275,6 +275,11 @@ describe("HTTP API", function() {
       ]);
     });
 
+    it("should return empty array when no topics match", function() {
+      const query = postQuery({ topic: this.prefix + "/+/nothing" });
+      return expect(query).to.eventually.deep.equal([]);
+    });
+
     it("should return all matching children", function() {
       const query = postQuery({ topic: this.prefix + "/+/child" });
       return expect(query).to.eventually.deep.equal([
