@@ -193,6 +193,21 @@ describe("HTTP API", function() {
         }
       ]);
     });
+
+    it("should support wildcard queries", function() {
+      const query = postQuery([
+        { topic: this.prefix + "/+" },
+        { topic: this.prefix + "/topic2" }
+      ]);
+
+      return expect(query).to.eventually.deep.equal([
+        [
+          { topic: this.prefix + "/topic1", payload: "foo" },
+          { topic: this.prefix + "/topic2", payload: "bar" }
+        ],
+        { topic: this.prefix + "/topic2", payload: "bar" }
+      ]);
+    });
   });
 
   describe("Invalid Queries", function() {
