@@ -208,6 +208,18 @@ describe("HTTP API", function() {
         { topic: this.prefix + "/topic2", payload: "bar" }
       ]);
     });
+
+    it("should support wildcard queries without results", function() {
+      const query = postQuery([
+        { topic: this.prefix + "/+/does-not-exist" },
+        { topic: this.prefix + "/topic2" }
+      ]);
+
+      return expect(query).to.eventually.deep.equal([
+        [],
+        { topic: this.prefix + "/topic2", payload: "bar" }
+      ]);
+    });
   });
 
   describe("Invalid Queries", function() {
@@ -276,7 +288,7 @@ describe("HTTP API", function() {
     });
 
     it("should return empty array when no topics match", function() {
-      const query = postQuery({ topic: this.prefix + "/+/nothing" });
+      const query = postQuery({ topic: this.prefix + "/+/does-not-exist" });
       return expect(query).to.eventually.deep.equal([]);
     });
 
