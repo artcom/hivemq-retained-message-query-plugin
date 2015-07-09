@@ -6,11 +6,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
 
-import javax.ws.rs.core.Response;
-
 import java.util.List;
 
-import static javax.ws.rs.core.Response.Status.OK;
+import static java.net.HttpURLConnection.HTTP_OK;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class QueryResultSuccess implements QueryResult {
@@ -25,8 +23,8 @@ public class QueryResultSuccess implements QueryResult {
     }
 
     @Override @JsonIgnore
-    public Response.Status getStatus() {
-        return OK;
+    public int getStatus() {
+        return HTTP_OK;
     }
 
     @Override
@@ -44,5 +42,5 @@ public class QueryResultSuccess implements QueryResult {
 
     public Optional<List<QueryResultSuccess>> getChildren() {
         return children;
-    };
+    }
 }

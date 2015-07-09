@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 
 public class QueryProcessor {
 
@@ -35,9 +35,9 @@ public class QueryProcessor {
 
     public QueryResult process(Query query) {
         if (query.topic.endsWith("/")) {
-            return new QueryResultError(query.topic, BAD_REQUEST, ErrorMessage.TRAILING_SLASH);
+            return new QueryResultError(query.topic, HTTP_BAD_REQUEST, ErrorMessage.TRAILING_SLASH);
         } else if (query.depth < 0) {
-            return new QueryResultError(query.topic, BAD_REQUEST, ErrorMessage.NEGATIVE_DEPTH);
+            return new QueryResultError(query.topic, HTTP_BAD_REQUEST, ErrorMessage.NEGATIVE_DEPTH);
         }
 
         if (query.topic.contains("+")) {
@@ -51,7 +51,7 @@ public class QueryProcessor {
         List<String> parts = Lists.newArrayList(WILDCARD_TOPIC_SPLITTER.split(query.topic));
 
         if (parts.size() > 2) {
-            return new QueryResultError(query.topic, BAD_REQUEST, ErrorMessage.MULTIPLE_WILDCARDS);
+            return new QueryResultError(query.topic, HTTP_BAD_REQUEST, ErrorMessage.MULTIPLE_WILDCARDS);
         }
 
         String prefix = parts.get(0);
@@ -97,7 +97,7 @@ public class QueryProcessor {
         RetainedTopicTree.Node node = retainedTopicTree.getTopic(query.topic);
 
         if (node == null) {
-            return new QueryResultError(query.topic, NOT_FOUND);
+            return new QueryResultError(query.topic, HTTP_NOT_FOUND);
         }
 
         return createResult(node, query.topic, query.depth);

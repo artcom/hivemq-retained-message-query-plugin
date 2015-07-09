@@ -4,11 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 
-import static javax.ws.rs.core.Response.Status.OK;
+import static java.net.HttpURLConnection.HTTP_OK;
 
 public class QueryResultList implements QueryResult {
     public static final Joiner COMMA_JOINER = Joiner.on(',');
@@ -19,8 +18,8 @@ public class QueryResultList implements QueryResult {
     }
 
     @Override
-    public Response.Status getStatus() {
-        return OK;
+    public int getStatus() {
+        return HTTP_OK;
     }
 
     @Override

@@ -71,7 +71,7 @@ describe("HTTP API", function() {
         statusCode: 404
       }).and.have.property("body").that.deep.equals({
         topic: this.prefix + "/does-not-exist",
-        error: "NOT_FOUND"
+        error: 404
       });
 
     });
@@ -87,7 +87,7 @@ describe("HTTP API", function() {
           statusCode: 404
       }).and.have.property("body").that.deep.equals({
         topic: this.prefix + "/topic1",
-        error: "NOT_FOUND"
+        error: 404
       });
     });
 
@@ -161,7 +161,7 @@ describe("HTTP API", function() {
 
       return expect(query).to.eventually.deep.equal([
         { topic: this.prefix + "/topic1", payload: "foo" },
-        { topic: this.prefix + "/does-not-exist", error: "NOT_FOUND" }
+        { topic: this.prefix + "/does-not-exist", error: 404 }
       ]);
     });
 
@@ -229,7 +229,7 @@ describe("HTTP API", function() {
       return expect(query).to.eventually.include({
         statusCode: 400
       }).and.to.have.property("body").that.deep.equals({
-        error: "BAD_REQUEST",
+        error: 400,
         message: "The response body must be a JSON object with a 'topic' and optional 'depth' property, or a JSON array of such objects."
       });
     });
@@ -241,7 +241,7 @@ describe("HTTP API", function() {
         statusCode: 400
       }).and.to.have.property("body").that.deep.equals({
         topic: "trailing/slash/",
-        error: "BAD_REQUEST",
+        error: 400,
         message: "The topic cannot end with a slash."
       });
     });
@@ -253,7 +253,7 @@ describe("HTTP API", function() {
         statusCode: 400
       }).and.to.have.property("body").that.deep.equals({
         topic: "using/+/multiple/+/wildcards",
-        error: "BAD_REQUEST",
+        error: 400,
         message: "The topic cannot contain more than one wildcard."
       });
     });
@@ -265,7 +265,7 @@ describe("HTTP API", function() {
         statusCode: 400
       }).and.to.have.property("body").that.deep.equals({
         topic: this.prefix,
-        error: "BAD_REQUEST",
+        error: 400,
         message: "The depth parameter cannot be negative."
       });
     });

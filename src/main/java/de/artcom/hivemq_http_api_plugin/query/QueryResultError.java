@@ -6,30 +6,28 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
 
-import javax.ws.rs.core.Response;
-
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class QueryResultError implements QueryResult {
     private final Optional<String> topic;
-    private final Response.Status error;
+    private final int error;
     private final Optional<String> message;
 
-    public QueryResultError(Response.Status error, String message) {
+    public QueryResultError(int error, String message) {
         this(null, error, message);
     }
 
-    public QueryResultError(String topic, Response.Status error) {
+    public QueryResultError(String topic, int error) {
         this(topic, error, null);
     }
 
-    public QueryResultError(String topic, Response.Status error, String message) {
+    public QueryResultError(String topic, int error, String message) {
         this.topic = Optional.fromNullable(topic);
         this.error = error;
         this.message = Optional.fromNullable(message);
     }
 
     @Override @JsonIgnore
-    public Response.Status getStatus() {
+    public int getStatus() {
         return error;
     }
 
@@ -42,7 +40,7 @@ public class QueryResultError implements QueryResult {
         return topic;
     }
 
-    public Response.Status getError() {
+    public int getError() {
         return error;
     }
 

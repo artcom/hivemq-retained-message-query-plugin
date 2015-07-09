@@ -18,8 +18,8 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.util.List;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 
 public class HttpApiService implements OnBrokerStart, OnBrokerStop {
 
@@ -40,7 +40,7 @@ public class HttpApiService implements OnBrokerStart, OnBrokerStop {
 
         Spark.post("/query", (request, response) -> {
             String body = request.body();
-            QueryResult result = new QueryResultError(BAD_REQUEST, ErrorMessage.JSON_FORMAT);
+            QueryResult result = new QueryResultError(HTTP_BAD_REQUEST, ErrorMessage.JSON_FORMAT);
 
             try {
                 JsonNode json = objectMapper.readTree(body);
@@ -80,11 +80,11 @@ public class HttpApiService implements OnBrokerStart, OnBrokerStop {
 
     private Object createResponse(Response response, QueryResult result) {
         try {
-            response.status(result.getStatus().getStatusCode());
+            response.status(result.getStatus());
             response.type("application/json; charset=utf-8");
             return result.toJSON(objectMapper);
         } catch (JsonProcessingException e) {
-            response.status(INTERNAL_SERVER_ERROR.getStatusCode());
+            response.status(HTTP_INTERNAL_ERROR);
             return null;
         }
     }
