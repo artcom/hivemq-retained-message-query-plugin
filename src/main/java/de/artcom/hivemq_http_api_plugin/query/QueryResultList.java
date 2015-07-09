@@ -24,7 +24,7 @@ public class QueryResultList implements QueryResult {
 
     @Override
     public String toJSON(ObjectMapper objectMapper) throws JsonProcessingException {
-        List<String> jsonResults = new ArrayList<String>();
+        List<String> jsonResults = new ArrayList<>();
 
         for (QueryResult result : results) {
             jsonResults.add(result.toJSON(objectMapper));

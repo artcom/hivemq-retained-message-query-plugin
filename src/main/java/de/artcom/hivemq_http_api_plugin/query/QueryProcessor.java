@@ -19,13 +19,6 @@ public class QueryProcessor {
             .on('+')
             .trimResults(CharMatcher.is('/'));
 
-    private static final Function<byte[], String> PAYLOAD_TO_STRING = new Function<byte[], String>() {
-        @Override
-        public String apply(byte[] bytes) {
-            return new String(bytes, Charset.forName("UTF-8"));
-        }
-    };
-
     private final RetainedTopicTree retainedTopicTree;
 
     @Inject
@@ -57,7 +50,7 @@ public class QueryProcessor {
         String prefix = parts.get(0);
         String suffix = parts.get(1);
 
-        List<QueryResult> results = new ArrayList<QueryResult>();
+        List<QueryResult> results = new ArrayList<>();
         RetainedTopicTree.Node node = retainedTopicTree.getTopic(prefix);
 
         if (node != null) {
@@ -107,7 +100,7 @@ public class QueryProcessor {
         List<QueryResultSuccess> children = null;
 
         if (depth > 0 && node.hasChildren()) {
-            children = new ArrayList<QueryResultSuccess>();
+            children = new ArrayList<>();
 
             for (Map.Entry<String, RetainedTopicTree.Node> entry : node.getChildren().entrySet()) {
                 String name = entry.getKey();
@@ -118,7 +111,7 @@ public class QueryProcessor {
 
         return new QueryResultSuccess(
                 topic,
-                node.getPayload().transform(PAYLOAD_TO_STRING),
+                node.getPayload().transform(bytes -> new String(bytes, Charset.forName("UTF-8"))),
                 Optional.fromNullable(children)
         );
     }
