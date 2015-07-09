@@ -1,4 +1,4 @@
-package de.artcom.hivemq_http_api_plugin.resources;
+package de.artcom.hivemq_http_api_plugin.query;
 
 import com.google.common.base.*;
 import com.google.common.collect.Lists;
