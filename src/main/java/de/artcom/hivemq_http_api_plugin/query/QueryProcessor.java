@@ -1,6 +1,8 @@
 package de.artcom.hivemq_http_api_plugin.query;
 
-import com.google.common.base.*;
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Optional;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import de.artcom.hivemq_http_api_plugin.RetainedTopicTree;
 
@@ -9,9 +11,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
-import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 
 public class QueryProcessor {
 
@@ -28,9 +27,9 @@ public class QueryProcessor {
 
     public QueryResult process(Query query) {
         if (query.topic.endsWith("/")) {
-            return new QueryResultError(query.topic, HTTP_BAD_REQUEST, ErrorMessage.TRAILING_SLASH);
+            return QueryResultError.trailingSlash(query.topic);
         } else if (query.depth < 0) {
-            return new QueryResultError(query.topic, HTTP_BAD_REQUEST, ErrorMessage.NEGATIVE_DEPTH);
+            return QueryResultError.negativeDepth(query.topic);
         }
 
         if (query.topic.contains("+")) {
@@ -44,7 +43,7 @@ public class QueryProcessor {
         List<String> parts = Lists.newArrayList(WILDCARD_TOPIC_SPLITTER.split(query.topic));
 
         if (parts.size() > 2) {
-            return new QueryResultError(query.topic, HTTP_BAD_REQUEST, ErrorMessage.MULTIPLE_WILDCARDS);
+            return QueryResultError.multipleWirdcards(query.topic);
         }
 
         String prefix = parts.get(0);
@@ -90,7 +89,7 @@ public class QueryProcessor {
         RetainedTopicTree.Node node = retainedTopicTree.getTopic(query.topic);
 
         if (node == null) {
-            return new QueryResultError(query.topic, HTTP_NOT_FOUND);
+            return QueryResultError.notFound(query.topic);
         }
 
         return createResult(node, query.topic, query.depth);

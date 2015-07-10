@@ -40,29 +40,28 @@ public class HttpApiService implements OnBrokerStart, OnBrokerStop {
         Spark.post("/query", (request, response) -> {
             String body = request.body();
             JsonNode json = objectMapper.readTree(body);
+            QueryResult result;
 
             if (json.isObject()) {
                 Query query = objectMapper.readValue(body, Query.class);
-                QueryResult result = singleQuery(query);
-                response.status(result.getStatus());
-                return result.toJSON(objectMapper);
+                result = singleQuery(query);
             } else if (json.isArray()) {
                 List<Query> queries = objectMapper.readValue(body, new TypeReference<List<Query>>() {});
-                QueryResult result = batchQuery(queries);
-                response.status(result.getStatus());
-                return result.toJSON(objectMapper);
+                result = batchQuery(queries);
+            } else {
+                result = QueryResultError.queryFormat();
             }
 
-            response.status(HTTP_BAD_REQUEST);
-            return null;
+            response.status(result.getStatus());
+            return result.toJSON(objectMapper);
         });
 
         Spark.exception(JsonMappingException.class, (mappingException, request, response) -> {
-            QueryResult result = new QueryResultError(HTTP_BAD_REQUEST, ErrorMessage.JSON_FORMAT);
+            QueryResult error = QueryResultError.queryFormat();
 
             try {
-                response.status(HTTP_BAD_REQUEST);
-                response.body(result.toJSON(objectMapper));
+                response.status(error.getStatus());
+                response.body(error.toJSON(objectMapper));
             } catch (JsonProcessingException processingException) {
                 response.status(HTTP_INTERNAL_ERROR);
                 response.body(null);
