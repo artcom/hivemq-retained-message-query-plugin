@@ -10,10 +10,12 @@ chai.use(require("chai-as-promised"));
 const expect = chai.expect;
 
 const BROKER_URL = process.env.BROKER || "localhost";
+const QUERY_URL = `http://${BROKER_URL}:8080/query`;
+const MQTT_URL = `mqtt://${BROKER_URL}`;
 
 function postQuery(json, additionalOptions={}) {
   const options = _.assign({ json }, additionalOptions);
-  return request.post(`http://${BROKER_URL}:8080/query`, options);
+  return request.post(QUERY_URL, options);
 }
 
 function postErrorQuery(json) {
@@ -24,7 +26,7 @@ describe("HTTP API", function() {
   let client;
 
   before(function(done) {
-    client = Promise.promisifyAll(mqtt.connect(`mqtt://${BROKER_URL}`));
+    client = Promise.promisifyAll(mqtt.connect(MQTT_URL));
     client.on("connect", done);
   });
 
@@ -342,6 +344,34 @@ describe("HTTP API", function() {
       return expect(query).to.eventually.deep.equal([
         { topic: this.prefix }
       ]);
+    });
+  });
+
+  describe("CORS Support", function() {
+    it("should handle preflight requests", function() {
+      const options = request(QUERY_URL, {
+        method: "OPTIONS",
+        json: { topic: this.prefix + "/topic1" },
+        headers: { "Origin": "localhost", "Access-Control-Request-Method": "POST" },
+        resolveWithFullResponse: true
+      });
+
+      return expect(options).to.eventually.have.property("headers").that.includes({
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": "POST, OPTIONS"
+      });
+    });
+
+    it("should set Access-Control-Allow-Origin", function() {
+      const post = request.post(QUERY_URL, {
+        json: { topic: this.prefix + "/topic1" },
+        headers: { "Origin": "localhost" },
+        resolveWithFullResponse: true
+      });
+
+      return expect(post).to.eventually.have.property("headers").that.includes({
+        "access-control-allow-origin": "*"
+      });
     });
   });
 });

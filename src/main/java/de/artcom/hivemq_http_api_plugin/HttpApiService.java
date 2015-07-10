@@ -17,8 +17,9 @@ import spark.Spark;
 import javax.inject.Inject;
 import java.util.List;
 
-import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static com.google.common.net.HttpHeaders.*;
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
+import static java.net.HttpURLConnection.HTTP_OK;
 
 public class HttpApiService implements OnBrokerStart, OnBrokerStop {
 
@@ -36,6 +37,23 @@ public class HttpApiService implements OnBrokerStart, OnBrokerStop {
     @Override
     public void onBrokerStart() throws BrokerUnableToStartException {
         Spark.port(8080);
+
+        Spark.options("/*", (request, response) -> {
+            if (request.headers(ACCESS_CONTROL_REQUEST_METHOD) != null) {
+                response.header(ACCESS_CONTROL_ALLOW_METHODS, "POST, OPTIONS");
+            }
+
+            response.status(HTTP_OK);
+            return "";
+        });
+
+        Spark.before((request, response) -> {
+            if (request.headers(ORIGIN) != null) {
+                response.header(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+            }
+
+            response.type("application/json; charset=utf-8");
+        });
 
         Spark.post("/query", (request, response) -> {
             String body = request.body();
@@ -64,12 +82,8 @@ public class HttpApiService implements OnBrokerStart, OnBrokerStop {
                 response.body(error.toJSON(objectMapper));
             } catch (JsonProcessingException processingException) {
                 response.status(HTTP_INTERNAL_ERROR);
-                response.body(null);
+                response.body("");
             }
-        });
-
-        Spark.after((request, response) -> {
-            response.type("application/json; charset=utf-8");
         });
     }
 
