@@ -69,20 +69,13 @@ public class QueryProcessor {
         return new QueryResultList(results);
     }
 
+    private String joinPath(String prefix, String childName) {
+        return prefix.isEmpty() ? childName : prefix + "/" + childName;
+    }
+
     private String joinPath(String prefix, String childName, String suffix) {
-        String topic = "";
-
-        if (!prefix.isEmpty()) {
-            topic += prefix + "/";
-        }
-
-        topic += childName;
-
-        if (!suffix.isEmpty()) {
-            topic += "/" + suffix;
-        }
-
-        return topic;
+        String topic = joinPath(prefix, childName);
+        return suffix.isEmpty() ? topic : topic + "/" + suffix;
     }
 
     private QueryResult processSingleQuery(Query query) {
@@ -104,7 +97,7 @@ public class QueryProcessor {
             for (Map.Entry<String, RetainedTopicTree.Node> entry : node.getChildren().entrySet()) {
                 String name = entry.getKey();
                 RetainedTopicTree.Node child = entry.getValue();
-                children.add(createResult(child, topic + "/" + name, depth - 1));
+                children.add(createResult(child, joinPath(topic, name), depth - 1));
             }
         }
 

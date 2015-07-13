@@ -139,6 +139,13 @@ describe("HTTP API", function() {
           ]
         });
       });
+
+      it("should return children of the root node", function() {
+        const query = postQuery({ topic: "", depth: 1 });
+        return expect(query).to.eventually.have.property("children").that.includes({
+          topic: "test"
+        });
+      });
     });
   });
 
