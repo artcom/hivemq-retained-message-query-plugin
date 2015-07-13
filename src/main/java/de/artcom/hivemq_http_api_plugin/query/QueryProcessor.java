@@ -26,7 +26,9 @@ public class QueryProcessor {
     }
 
     public QueryResult process(Query query) {
-        if (query.topic.endsWith("/")) {
+        if (query.topic.startsWith("/")) {
+            return QueryResultError.leadingSlash(query.topic);
+        } else if (query.topic.endsWith("/")) {
             return QueryResultError.trailingSlash(query.topic);
         } else if (query.depth < 0) {
             return QueryResultError.negativeDepth(query.topic);

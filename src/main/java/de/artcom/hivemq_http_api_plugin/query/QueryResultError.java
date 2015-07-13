@@ -19,6 +19,10 @@ public class QueryResultError implements QueryResult {
         return new QueryResultError(HTTP_BAD_REQUEST, "The response body must be a JSON object with a 'topic' and optional 'depth' property, or a JSON array of such objects.");
     }
 
+    public static QueryResultError leadingSlash(String topic) {
+        return new QueryResultError(topic, HTTP_BAD_REQUEST, "The topic cannot start with a slash.");
+    }
+
     public static QueryResultError trailingSlash(String topic) {
         return new QueryResultError(topic, HTTP_BAD_REQUEST, "The topic cannot end with a slash.");
     }

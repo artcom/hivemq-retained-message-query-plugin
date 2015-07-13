@@ -243,6 +243,18 @@ describe("HTTP API", function() {
       });
     });
 
+    it("should return an error when topic has leading slash", function() {
+      const query = postErrorQuery({ topic: "/leading/slash" });
+
+      return expect(query).to.eventually.include({
+        statusCode: 400
+      }).and.to.have.property("body").that.deep.equals({
+        topic: "/leading/slash",
+        error: 400,
+        message: "The topic cannot start with a slash."
+      });
+    });
+
     it("should return an error when topic has trailing slash", function() {
       const query = postErrorQuery({ topic: "trailing/slash/" });
 
