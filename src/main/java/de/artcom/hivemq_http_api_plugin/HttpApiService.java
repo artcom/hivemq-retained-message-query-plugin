@@ -43,6 +43,11 @@ public class HttpApiService implements OnBrokerStart, OnBrokerStop {
                 response.header(ACCESS_CONTROL_ALLOW_METHODS, "POST, OPTIONS");
             }
 
+            String headers = request.headers(ACCESS_CONTROL_REQUEST_HEADERS);
+            if (headers != null) {
+                response.header(ACCESS_CONTROL_ALLOW_HEADERS, headers);
+            }
+
             response.status(HTTP_OK);
             return "";
         });

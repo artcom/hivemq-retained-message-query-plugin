@@ -352,13 +352,18 @@ describe("HTTP API", function() {
       const options = request(QUERY_URL, {
         method: "OPTIONS",
         json: { topic: this.prefix + "/topic1" },
-        headers: { "Origin": "localhost", "Access-Control-Request-Method": "POST" },
+        headers: {
+          "origin": "localhost",
+          "access-control-request-method": "POST",
+          "access-control-request-headers": "X-FOO"
+        },
         resolveWithFullResponse: true
       });
 
       return expect(options).to.eventually.have.property("headers").that.includes({
         "access-control-allow-origin": "*",
-        "access-control-allow-methods": "POST, OPTIONS"
+        "access-control-allow-methods": "POST, OPTIONS",
+        "access-control-allow-headers": "X-FOO"
       });
     });
 
