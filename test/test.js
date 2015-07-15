@@ -381,7 +381,7 @@ describe("HTTP API", function() {
 
       return expect(options).to.eventually.have.property("headers").that.includes({
         "access-control-allow-origin": "*",
-        "access-control-allow-methods": "POST, OPTIONS",
+        "access-control-allow-methods": "POST",
         "access-control-allow-headers": "X-FOO"
       });
     });

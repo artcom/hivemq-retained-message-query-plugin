@@ -39,8 +39,9 @@ public class HttpApiService implements OnBrokerStart, OnBrokerStop {
         Spark.port(8080);
 
         Spark.options("/*", (request, response) -> {
-            if (request.headers(ACCESS_CONTROL_REQUEST_METHOD) != null) {
-                response.header(ACCESS_CONTROL_ALLOW_METHODS, "POST, OPTIONS");
+            String method = request.headers(ACCESS_CONTROL_REQUEST_METHOD);
+            if (method != null) {
+                response.header(ACCESS_CONTROL_ALLOW_METHODS, method);
             }
 
             String headers = request.headers(ACCESS_CONTROL_REQUEST_HEADERS);
