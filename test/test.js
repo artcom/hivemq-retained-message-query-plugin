@@ -94,6 +94,12 @@ describe("HTTP API", function() {
     });
 
     describe("with Depth Parameter", function() {
+      beforeEach(function() {
+        return this.publish({
+          [this.prefix + "/topic2/deepTopic"]: "baz"
+        });
+      });
+
       it("should return empty result for intermediary topic", function() {
         const query = postQuery({ topic: this.prefix, depth: 0 });
         return expect(query).to.eventually.deep.equal({
@@ -113,12 +119,7 @@ describe("HTTP API", function() {
       });
 
       it("should return the payload of deeper children", function() {
-        const query = this.publish({
-          [this.prefix + "/topic2/deepTopic"]: "baz"
-        }).then(() => {
-          return postQuery({ topic: this.prefix, depth: 2 });
-        });
-
+        const query = postQuery({ topic: this.prefix, depth: 2 });
         return expect(query).to.eventually.deep.equal({
           topic: this.prefix,
           children: [
@@ -144,6 +145,29 @@ describe("HTTP API", function() {
         const query = postQuery({ topic: "", depth: 1 });
         return expect(query).to.eventually.have.property("children").that.includes({
           topic: "test"
+        });
+      });
+
+      it("should return all children", function() {
+        const query = postQuery({ topic: this.prefix, depth: -1 });
+        return expect(query).to.eventually.deep.equal({
+          topic: this.prefix,
+          children: [
+            {
+              topic: this.prefix + "/topic1",
+              payload: "foo"
+            },
+            {
+              topic: this.prefix + "/topic2",
+              payload: "bar",
+              children: [
+                {
+                  topic: this.prefix + "/topic2/deepTopic",
+                  payload: "baz"
+                }
+              ]
+            }
+          ]
         });
       });
     });
@@ -276,18 +300,6 @@ describe("HTTP API", function() {
         topic: "using/+/multiple/+/wildcards",
         error: 400,
         message: "The topic cannot contain more than one wildcard."
-      });
-    });
-
-    it("should return an error for negative depth values", function() {
-      const query = postErrorQuery({ topic: this.prefix, depth: -1 });
-
-      return expect(query).to.eventually.include({
-        statusCode: 400
-      }).and.to.have.property("body").that.deep.equals({
-        topic: this.prefix,
-        error: 400,
-        message: "The depth parameter cannot be negative."
       });
     });
   });

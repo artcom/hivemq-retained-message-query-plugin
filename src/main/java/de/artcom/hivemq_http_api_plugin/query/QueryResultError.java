@@ -27,10 +27,6 @@ public class QueryResultError implements QueryResult {
         return new QueryResultError(topic, HTTP_BAD_REQUEST, "The topic cannot end with a slash.");
     }
 
-    public static QueryResultError negativeDepth(String topic) {
-        return new QueryResultError(topic, HTTP_BAD_REQUEST, "The depth parameter cannot be negative.");
-    }
-
     public static QueryResultError multipleWirdcards(String topic) {
         return new QueryResultError(topic, HTTP_BAD_REQUEST, "The topic cannot contain more than one wildcard.");
     }

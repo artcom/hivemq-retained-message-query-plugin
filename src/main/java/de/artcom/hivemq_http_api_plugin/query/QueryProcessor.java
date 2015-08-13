@@ -30,8 +30,6 @@ public class QueryProcessor {
             return QueryResultError.leadingSlash(query.topic);
         } else if (query.topic.endsWith("/")) {
             return QueryResultError.trailingSlash(query.topic);
-        } else if (query.depth < 0) {
-            return QueryResultError.negativeDepth(query.topic);
         }
 
         if (query.topic.contains("+")) {
@@ -93,7 +91,7 @@ public class QueryProcessor {
     private QueryResultSuccess createResult(RetainedTopicTree.Node node, String topic, int depth) {
         List<QueryResultSuccess> children = null;
 
-        if (depth > 0 && node.hasChildren()) {
+        if (depth != 0 && node.hasChildren()) {
             children = new ArrayList<>();
 
             for (Map.Entry<String, RetainedTopicTree.Node> entry : node.getChildren().entrySet()) {
