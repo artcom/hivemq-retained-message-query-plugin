@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 
+import java.util.Collections;
 import java.util.List;
 
 import static java.net.HttpURLConnection.HTTP_OK;
@@ -30,6 +32,19 @@ public class QueryResultSuccess implements QueryResult {
     @Override
     public String toJSON(ObjectMapper objectMapper) throws JsonProcessingException {
         return objectMapper.writeValueAsString(this);
+    }
+
+    @Override
+    public ImmutableList<QueryResult> flatten() {
+        ImmutableList.Builder<QueryResult> builder = ImmutableList.<QueryResult>builder();
+
+        builder.add(new QueryResultSuccess(topic, payload, Optional.absent()));
+
+        for (QueryResult child : children.or(Collections.emptyList())) {
+            builder.addAll(child.flatten());
+        }
+
+        return builder.build();
     }
 
     public String getTopic() {
