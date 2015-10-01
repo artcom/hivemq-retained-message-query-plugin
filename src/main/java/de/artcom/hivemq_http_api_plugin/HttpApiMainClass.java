@@ -16,8 +16,8 @@
 
 package de.artcom.hivemq_http_api_plugin;
 
-import com.dcsquare.hivemq.spi.PluginEntryPoint;
-import com.dcsquare.hivemq.spi.callback.registry.CallbackRegistry;
+import com.hivemq.spi.PluginEntryPoint;
+import com.hivemq.spi.callback.registry.CallbackRegistry;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;

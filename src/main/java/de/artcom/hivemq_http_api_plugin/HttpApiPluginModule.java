@@ -16,25 +16,16 @@
 
 package de.artcom.hivemq_http_api_plugin;
 
-import com.dcsquare.hivemq.spi.HiveMQPluginModule;
-import com.dcsquare.hivemq.spi.PluginEntryPoint;
-import com.dcsquare.hivemq.spi.plugin.meta.Information;
-import com.google.inject.Provider;
-import org.apache.commons.configuration.AbstractConfiguration;
+import com.hivemq.spi.HiveMQPluginModule;
+import com.hivemq.spi.PluginEntryPoint;
+import com.hivemq.spi.plugin.meta.Information;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.dcsquare.hivemq.spi.config.Configurations.noConfigurationNeeded;
 
-
-@Information(name = "HiveMQ HTTP API Plugin", author = "ART+COM AG", version = "0.3.1-SNAPSHOT")
+@Information(name = "HiveMQ HTTP API Plugin", author = "ART+COM AG", version = "0.4.0-SNAPSHOT")
 public class HttpApiPluginModule extends HiveMQPluginModule {
-
-    @Override
-    public Provider<Iterable<? extends AbstractConfiguration>> getConfigurations() {
-        return noConfigurationNeeded();
-    }
 
     @Override
     protected void configurePlugin() {
