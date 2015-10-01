@@ -49,7 +49,8 @@ public class QueryResultError implements QueryResult {
         this.message = Optional.fromNullable(message);
     }
 
-    @Override @JsonIgnore
+    @Override
+    @JsonIgnore
     public int getStatus() {
         return error;
     }

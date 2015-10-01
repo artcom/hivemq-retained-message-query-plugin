@@ -22,7 +22,8 @@ public class QueryResultSuccess implements QueryResult {
         this.children = children;
     }
 
-    @Override @JsonIgnore
+    @Override
+    @JsonIgnore
     public int getStatus() {
         return HTTP_OK;
     }

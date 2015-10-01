@@ -1,14 +1,14 @@
 package de.artcom.hivemq_http_api_plugin;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedMap;
 import com.hivemq.spi.callback.events.OnPublishReceivedCallback;
 import com.hivemq.spi.callback.exception.OnPublishReceivedException;
 import com.hivemq.spi.message.PUBLISH;
 import com.hivemq.spi.message.RetainedMessage;
 import com.hivemq.spi.security.ClientData;
 import com.hivemq.spi.services.RetainedMessageStore;
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedMap;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -61,18 +61,18 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
     public void onPublishReceived(final PUBLISH publish, ClientData clientData) throws OnPublishReceivedException {
         if (publish.isRetain()) {
             executorService.submit(new Runnable() {
-                @Override
-                public void run() {
-                        String topic = publish.getTopic();
-                        byte[] payload = publish.getPayload();
+                                       @Override
+                                       public void run() {
+                                           String topic = publish.getTopic();
+                                           byte[] payload = publish.getPayload();
 
-                        if (payload.length == 0) {
-                            removeTopic(topic);
-                        } else {
-                            addTopic(topic, payload);
-                        }
-                    }
-                }
+                                           if (payload.length == 0) {
+                                               removeTopic(topic);
+                                           } else {
+                                               addTopic(topic, payload);
+                                           }
+                                       }
+                                   }
             );
         }
     }

@@ -1,9 +1,5 @@
 package de.artcom.hivemq_http_api_plugin;
 
-import com.hivemq.spi.callback.CallbackPriority;
-import com.hivemq.spi.callback.events.broker.OnBrokerStart;
-import com.hivemq.spi.callback.events.broker.OnBrokerStop;
-import com.hivemq.spi.callback.exception.BrokerUnableToStartException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -11,6 +7,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.Lists;
+import com.hivemq.spi.callback.CallbackPriority;
+import com.hivemq.spi.callback.events.broker.OnBrokerStart;
+import com.hivemq.spi.callback.events.broker.OnBrokerStop;
+import com.hivemq.spi.callback.exception.BrokerUnableToStartException;
 import de.artcom.hivemq_http_api_plugin.query.*;
 import spark.Spark;
 
