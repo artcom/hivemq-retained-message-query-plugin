@@ -14,9 +14,9 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.List;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
+@Path("query")
 public class QueryResource {
     private final ObjectMapper objectMapper;
     private final QueryProcessor queryProcessor;
@@ -30,7 +30,6 @@ public class QueryResource {
     }
 
     @POST
-    @Path("query")
     public Response post(String body) {
         QueryResult result = QueryResultError.queryFormat();
 
