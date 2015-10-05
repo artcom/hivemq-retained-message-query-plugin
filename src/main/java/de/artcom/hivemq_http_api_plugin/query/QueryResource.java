@@ -54,7 +54,7 @@ public class QueryResource {
     public static Response options() {
         return Response.ok("")
                 .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Headers", "X-FOO")
+                .header("Access-Control-Allow-Headers", "origin, content-type, accept, authorization")
                 .header("Access-Control-Allow-Methods", "POST")
                 .build();
     }
@@ -76,7 +76,7 @@ public class QueryResource {
                     .status(result.getStatus())
                     .entity(json)
                     .header("Access-Control-Allow-Origin", "*")
-                    .header("Access-Control-Allow-Headers", "X-FOO")
+                    .header("Access-Control-Allow-Headers", "origin, content-type, accept, authorization")
                     .header("Access-Control-Allow-Methods", "POST")
                     .build();
         } catch (JsonProcessingException e) {
