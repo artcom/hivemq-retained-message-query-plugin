@@ -75,6 +75,7 @@ public class QueryResource {
             return Response
                     .status(result.getStatus())
                     .entity(json)
+                    .header("Content-Type", "application/json; charset=utf-8")
                     .header("Access-Control-Allow-Origin", "*")
                     .header("Access-Control-Allow-Headers", "origin, content-type, accept, authorization")
                     .header("Access-Control-Allow-Methods", "POST")
