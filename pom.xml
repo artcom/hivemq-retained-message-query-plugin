@@ -50,6 +50,7 @@
                         <configuration>
                             <artifactSet>
                                 <excludes>
+                                    <exclude>javax.ws.rs:javax.ws.rs-api</exclude>
                                     <exclude>com.hivemq:hivemq-spi</exclude>
                                     <exclude>com.google.inject:*</exclude>
                                     <exclude>com.google.guava:*</exclude>
