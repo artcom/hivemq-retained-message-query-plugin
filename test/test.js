@@ -386,7 +386,7 @@ describe("HTTP API", function() {
         headers: {
           "origin": "localhost",
           "access-control-request-method": "POST",
-          "access-control-request-headers": "X-FOO"
+          "access-control-request-headers": "origin, content-type, accept, authorization"
         },
         resolveWithFullResponse: true
       });
@@ -394,7 +394,7 @@ describe("HTTP API", function() {
       return expect(options).to.eventually.have.property("headers").that.includes({
         "access-control-allow-origin": "*",
         "access-control-allow-methods": "POST",
-        "access-control-allow-headers": "X-FOO"
+        "access-control-allow-headers": "origin, content-type, accept, authorization"
       });
     });
 
