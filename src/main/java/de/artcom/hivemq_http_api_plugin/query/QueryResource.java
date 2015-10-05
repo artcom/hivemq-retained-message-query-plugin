@@ -8,6 +8,7 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.Lists;
 
 import javax.inject.Inject;
+import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
@@ -16,7 +17,7 @@ import java.util.List;
 
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
-@Path("query")
+@Path("/query")
 public class QueryResource {
     private final ObjectMapper objectMapper;
     private final QueryProcessor queryProcessor;
@@ -49,6 +50,15 @@ public class QueryResource {
         return createResponse(result);
     }
 
+    @OPTIONS
+    public static Response options() {
+        return Response.ok("")
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Headers", "X-FOO")
+                .header("Access-Control-Allow-Methods", "POST")
+                .build();
+    }
+
     private QueryResult singleQuery(Query query) {
         return queryProcessor.process(query);
     }
@@ -62,7 +72,13 @@ public class QueryResource {
     private Response createResponse(QueryResult result) {
         try {
             String json = result.toJSON(objectMapper);
-            return Response.status(result.getStatus()).entity(json).build();
+            return Response
+                    .status(result.getStatus())
+                    .entity(json)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Headers", "X-FOO")
+                    .header("Access-Control-Allow-Methods", "POST")
+                    .build();
         } catch (JsonProcessingException e) {
             return Response.status(INTERNAL_SERVER_ERROR).build();
         }
