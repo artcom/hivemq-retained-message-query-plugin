@@ -9,7 +9,7 @@ import de.artcom.hivemq_http_api_plugin.query.QueryResource;
 
 import javax.inject.Inject;
 
-public class HttpApiService implements OnBrokerStart, OnBrokerStop {
+public class HttpApiService implements OnBrokerStart {
 
     private final RESTService restService;
 
@@ -22,9 +22,6 @@ public class HttpApiService implements OnBrokerStart, OnBrokerStop {
     public void onBrokerStart() throws BrokerUnableToStartException {
         restService.addJaxRsResources(QueryResource.class);
     }
-
-    @Override
-    public void onBrokerStop() {}
 
     @Override
     public int priority() {
