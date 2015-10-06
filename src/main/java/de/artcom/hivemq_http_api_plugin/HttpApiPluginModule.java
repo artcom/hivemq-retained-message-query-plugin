@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 
-@Information(name = "HiveMQ HTTP API Plugin", author = "ART+COM AG", version = "0.4.0-SNAPSHOT")
+@Information(name = "HiveMQ HTTP API Plugin", author = "ART+COM AG", version = "0.4.1-SNAPSHOT")
 public class HttpApiPluginModule extends HiveMQPluginModule {
 
     @Override
