@@ -9,9 +9,8 @@ const _ = require("lodash");
 chai.use(require("chai-as-promised"));
 const expect = chai.expect;
 
-const BROKER_URL = process.env.BROKER || "localhost";
-const QUERY_URL = `http://${BROKER_URL}:8080/query`;
-const MQTT_URL = `mqtt://${BROKER_URL}`;
+const QUERY_URL = (process.env.HTTP_BROKER_URI || "http://localhost:8080") + "/query";
+const TCP_BROKER_URI = process.env.TCP_BROKER_URI || "tcp://localhost";
 
 function postQuery(json, additionalOptions={}) {
   const options = _.assign({ json }, additionalOptions);
@@ -26,7 +25,7 @@ describe("HTTP API", function() {
   let client;
 
   before(function(done) {
-    client = Promise.promisifyAll(mqtt.connect(MQTT_URL));
+    client = Promise.promisifyAll(mqtt.connect(TCP_BROKER_URI));
     client.on("connect", done);
   });
 
