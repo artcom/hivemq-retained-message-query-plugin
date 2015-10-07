@@ -4,7 +4,7 @@
 
     <groupId>de.artcom</groupId>
     <artifactId>hivemq-http-api-plugin</artifactId>
-    <version>0.4.0</version>
+    <version>0.4.1</version>
 
     <dependencies>
         <dependency>
@@ -82,7 +82,7 @@
                                     <goal>hivemq</goal>
                                 </goals>
                                 <configuration>
-                                    <hiveMQDir>/usr/local/opt/hivemq/libexec</hiveMQDir>
+                                    <hiveMQDir>/usr/local/opt/hivemq-3.0.0</hiveMQDir>
                                     <debugMode>SERVER</debugMode>
                                 </configuration>
                             </execution>

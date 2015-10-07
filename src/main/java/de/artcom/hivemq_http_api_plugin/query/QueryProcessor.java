@@ -32,10 +32,14 @@ public class QueryProcessor {
             return QueryResultError.trailingSlash(query.topic);
         }
 
-        if (query.topic.contains("+")) {
-            return processWildcardQuery(query);
+        QueryResult result = query.topic.contains("+")
+                ? processWildcardQuery(query)
+                : processSingleQuery(query);
+
+        if (query.flatten) {
+            return new QueryResultList(result.flatten());
         } else {
-            return processSingleQuery(query);
+            return result;
         }
     }
 

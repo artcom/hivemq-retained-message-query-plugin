@@ -140,6 +140,16 @@ describe("HTTP API", function() {
         });
       });
 
+      it("should return flattened list of topics", function() {
+        const query = postQuery({ topic: this.prefix, depth: 2, flatten: true });
+        return expect(query).to.eventually.deep.equal([
+          { topic: this.prefix },
+          { topic: this.prefix + "/topic1", payload: "foo" },
+          { topic: this.prefix + "/topic2", payload: "bar" },
+          { topic: this.prefix + "/topic2/deepTopic", payload: "baz" }
+        ]);
+      });
+
       it("should return children of the root node", function() {
         const query = postQuery({ topic: "", depth: 1 });
         return expect(query).to.eventually.have.property("children").that.includes({
@@ -223,6 +233,29 @@ describe("HTTP API", function() {
             }
           ]
         }
+      ]);
+    });
+
+    it("should support different flatten parameters", function() {
+      const query = this.publish({
+        [this.prefix + "/topic1/child"]: "one",
+        [this.prefix + "/topic2/child"]: "two"
+      }).then(() => {
+        return postQuery([
+          { topic: this.prefix + "/topic1" },
+          { topic: this.prefix + "/topic2", depth: 1, flatten: true }
+        ]);
+      });
+
+      return expect(query).to.eventually.deep.equal([
+        {
+          topic: this.prefix + "/topic1",
+          payload: "foo"
+        },
+        [
+          { topic: this.prefix + "/topic2", payload: "bar" },
+          { topic: this.prefix + "/topic2/child", payload: "two" }
+        ]
       ]);
     });
 
@@ -366,6 +399,16 @@ describe("HTTP API", function() {
             }
           ]
         }
+      ]);
+    });
+
+    it("should support the depth and flatten parameter", function() {
+      const query = postQuery({ topic: this.prefix + "/+", depth: 1, flatten: true });
+      return expect(query).to.eventually.deep.equal([
+        { topic: this.prefix + "/topic1", payload: "foo" },
+        { topic: this.prefix + "/topic1/child", payload: "one" },
+        { topic: this.prefix + "/topic2", payload: "bar" },
+        { topic: this.prefix + "/topic2/child", payload: "two" }
       ]);
     });
 
