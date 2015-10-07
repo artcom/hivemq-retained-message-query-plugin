@@ -3,6 +3,7 @@ package de.artcom.hivemq_http_api_plugin.query;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,5 +32,16 @@ public class QueryResultList implements QueryResult {
         }
 
         return "[" + COMMA_JOINER.join(jsonResults) + "]";
+    }
+
+    @Override
+    public ImmutableList<QueryResult> flatten() {
+        ImmutableList.Builder<QueryResult> builder = ImmutableList.<QueryResult>builder();
+
+        for (QueryResult result : results) {
+            builder.addAll(result.flatten());
+        }
+
+        return builder.build();
     }
 }
