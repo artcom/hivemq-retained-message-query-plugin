@@ -96,7 +96,7 @@
                                     <goal>hivemq</goal>
                                 </goals>
                                 <configuration>
-                                    <hiveMQDir>/usr/local/opt/hivemq/libexec</hiveMQDir>
+                                    <hiveMQDir>/usr/local/opt/hivemq-2.3.1</hiveMQDir>
                                     <debugMode>SERVER</debugMode>
                                 </configuration>
                             </execution>
