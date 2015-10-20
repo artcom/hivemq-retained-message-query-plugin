@@ -17,7 +17,7 @@ public class QueryResultError implements QueryResult {
     private final Optional<String> message;
 
     public static QueryResultError queryFormat() {
-        return new QueryResultError(HTTP_BAD_REQUEST, "The response body must be a JSON object with a 'topic' and optional 'depth' property, or a JSON array of such objects.");
+        return new QueryResultError(HTTP_BAD_REQUEST, "The request body must be a JSON object with a 'topic' and optional 'depth' property, or a JSON array of such objects.");
     }
 
     public static QueryResultError leadingSlash(String topic) {

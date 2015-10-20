@@ -302,7 +302,7 @@ describe("HTTP API", function() {
         statusCode: 400
       }).and.to.have.property("body").that.deep.equals({
         error: 400,
-        message: "The response body must be a JSON object with a 'topic' and optional 'depth' property, or a JSON array of such objects."
+        message: "The request body must be a JSON object with a 'topic' and optional 'depth' property, or a JSON array of such objects."
       });
     });
 
