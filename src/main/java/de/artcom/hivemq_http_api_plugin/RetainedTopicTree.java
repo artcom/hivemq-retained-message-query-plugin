@@ -39,22 +39,33 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
 
     public Node getTopic(String topic, Node parent) {
         lock.readLock().lock();
-        Node node = parent.getTopic(topic);
-        lock.readLock().unlock();
-        return node;
+
+        try {
+            return parent.getTopic(topic);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     private void addTopic(String topic, byte[] payload) {
         lock.writeLock().lock();
-        Node node = root.createTopic(topic);
-        node.setPayload(payload);
-        lock.writeLock().unlock();
+
+        try {
+            Node node = root.createTopic(topic);
+            node.setPayload(payload);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     private void removeTopic(String topic) {
         lock.writeLock().lock();
-        root.removeTopic(topic);
-        lock.writeLock().unlock();
+
+        try {
+            root.removeTopic(topic);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     @Override
