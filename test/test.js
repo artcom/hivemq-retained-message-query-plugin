@@ -106,6 +106,13 @@ describe("HTTP API", function() {
         });
       });
 
+      it("should return singleton array for flattened intermediary topic", function() {
+        const query = postQuery({ topic: this.prefix, depth: 0, flatten: true });
+        return expect(query).to.eventually.deep.equal([
+          { topic: this.prefix }
+        ]);
+      });
+
       it("should return the payload of immediate children", function() {
         const query = postQuery({ topic: this.prefix, depth: 1 });
         return expect(query).to.eventually.deep.equal({

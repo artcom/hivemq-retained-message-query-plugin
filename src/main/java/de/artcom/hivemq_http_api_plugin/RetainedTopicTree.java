@@ -21,7 +21,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class RetainedTopicTree implements OnPublishReceivedCallback {
     private final Node root = new Node();
     private final ExecutorService executorService;
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
     @Inject
     public RetainedTopicTree(ExecutorService executorService, RetainedMessageStore retainedMessageStore) {
@@ -39,40 +39,48 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
 
     public Node getTopic(String topic, Node parent) {
         lock.readLock().lock();
-        Node node = parent.getTopic(topic);
-        lock.readLock().unlock();
-        return node;
+
+        try {
+            return parent.getTopic(topic);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     private void addTopic(String topic, byte[] payload) {
         lock.writeLock().lock();
-        Node node = root.createTopic(topic);
-        node.setPayload(payload);
-        lock.writeLock().unlock();
+
+        try {
+            Node node = root.createTopic(topic);
+            node.setPayload(payload);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     private void removeTopic(String topic) {
         lock.writeLock().lock();
-        root.removeTopic(topic);
-        lock.writeLock().unlock();
+
+        try {
+            root.removeTopic(topic);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     @Override
     public void onPublishReceived(final PUBLISH publish, ClientData clientData) throws OnPublishReceivedException {
         if (publish.isRetain()) {
-            executorService.submit(new Runnable() {
-                                       @Override
-                                       public void run() {
-                                           String topic = publish.getTopic();
-                                           byte[] payload = publish.getPayload();
+            executorService.submit(() -> {
+                        String topic = publish.getTopic();
+                        byte[] payload = publish.getPayload();
 
-                                           if (payload.length == 0) {
-                                               removeTopic(topic);
-                                           } else {
-                                               addTopic(topic, payload);
-                                           }
-                                       }
-                                   }
+                        if (payload.length == 0) {
+                            removeTopic(topic);
+                        } else {
+                            addTopic(topic, payload);
+                        }
+                    }
             );
         }
     }
@@ -84,7 +92,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
 
     public static class Node {
         private Optional<byte[]> payload = Optional.absent();
-        private final HashMap<String, Node> children = new HashMap<String, Node>();
+        private final HashMap<String, Node> children = new HashMap<>();
 
         public Optional<byte[]> getPayload() {
             return payload;
