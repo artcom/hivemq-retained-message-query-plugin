@@ -71,9 +71,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
     @Override
     public void onPublishReceived(final PUBLISH publish, ClientData clientData) throws OnPublishReceivedException {
         if (publish.isRetain()) {
-            executorService.submit(new Runnable() {
-                @Override
-                public void run() {
+            executorService.submit(() -> {
                         String topic = publish.getTopic();
                         byte[] payload = publish.getPayload();
 
@@ -83,7 +81,6 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
                             addTopic(topic, payload);
                         }
                     }
-                }
             );
         }
     }
@@ -95,7 +92,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
 
     public static class Node {
         private Optional<byte[]> payload = Optional.absent();
-        private HashMap<String, Node> children = new HashMap<String, Node>();
+        private HashMap<String, Node> children = new HashMap<>();
 
         public Optional<byte[]> getPayload() {
             return payload;
