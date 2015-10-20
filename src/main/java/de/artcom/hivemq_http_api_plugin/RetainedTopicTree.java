@@ -21,7 +21,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class RetainedTopicTree implements OnPublishReceivedCallback {
     private final Node root = new Node();
     private final ExecutorService executorService;
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
     @Inject
     public RetainedTopicTree(ExecutorService executorService, RetainedMessageStore retainedMessageStore) {
