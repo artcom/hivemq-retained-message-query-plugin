@@ -28,7 +28,7 @@ import java.util.concurrent.Executors;
 import static com.dcsquare.hivemq.spi.config.Configurations.noConfigurationNeeded;
 
 
-@Information(name = "HiveMQ HTTP API Plugin", author = "ART+COM AG", version = "0.3.2-SNAPSHOT")
+@Information(name = "HiveMQ HTTP API Plugin", author = "ART+COM AG", version = "0.3.2")
 public class HttpApiPluginModule extends HiveMQPluginModule {
 
     @Override
