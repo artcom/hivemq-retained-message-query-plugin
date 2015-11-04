@@ -94,10 +94,11 @@ public class HttpApiService implements OnBrokerStart, OnBrokerStop {
             } else {
                 result = QueryResultError.queryFormat();
             }
+
             response.status(result.getStatus());
 
             float responseTime = (System.nanoTime() - startTime) / 1000000.0f;
-            logRequest(json.get("topic").asText(), responseTime);
+            logRequest(body, responseTime);
 
             return result.toJSON(objectMapper);
         });
@@ -126,10 +127,10 @@ public class HttpApiService implements OnBrokerStart, OnBrokerStop {
         return new QueryResultList(results);
     }
 
-    private void logRequest(String topic, float responseTime) {
+    private void logRequest(String body, float responseTime) {
         ObjectNode logNode = objectMapper.createObjectNode();
         logNode.put("name", "hivemq-http-api-plugin");
-        logNode.put("topic", topic);
+        logNode.put("requestBody", body);
         logNode.put("responseTime", responseTime);
         log.info(logNode.toString());
     }
@@ -137,8 +138,8 @@ public class HttpApiService implements OnBrokerStart, OnBrokerStop {
     private void logError(String errorMessage, String requestBody) {
         ObjectNode logNode = objectMapper.createObjectNode();
         logNode.put("name", "hivemq-http-api-plugin");
-        logNode.put("error", errorMessage);
-        logNode.put("request", requestBody);
+        logNode.put("requestBody", requestBody);
+        logNode.put("errorMessage", errorMessage);
         log.error(logNode.toString());
     }
 
