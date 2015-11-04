@@ -114,7 +114,7 @@ public class HttpApiService implements OnBrokerStart, OnBrokerStop {
                 response.body("");
             }
 
-            logError(error.getMessage().get(), request.body());
+            logError(error.getMessage().or(""), request.body());
         });
     }
 
