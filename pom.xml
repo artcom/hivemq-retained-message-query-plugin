@@ -82,7 +82,7 @@
                                     <goal>hivemq</goal>
                                 </goals>
                                 <configuration>
-                                    <hiveMQDir>/usr/local/opt/hivemq-3.0.0</hiveMQDir>
+                                    <hiveMQDir>/usr/local/opt/hivemq-3.0.3</hiveMQDir>
                                     <debugMode>SERVER</debugMode>
                                 </configuration>
                             </execution>
