@@ -1,14 +1,14 @@
 package de.artcom.hivemq_http_api_plugin;
 
-import com.dcsquare.hivemq.spi.callback.events.OnPublishReceivedCallback;
-import com.dcsquare.hivemq.spi.callback.exception.OnPublishReceivedException;
-import com.dcsquare.hivemq.spi.message.PUBLISH;
-import com.dcsquare.hivemq.spi.message.RetainedMessage;
-import com.dcsquare.hivemq.spi.security.ClientData;
-import com.dcsquare.hivemq.spi.services.RetainedMessageStore;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import com.hivemq.spi.callback.events.OnPublishReceivedCallback;
+import com.hivemq.spi.callback.exception.OnPublishReceivedException;
+import com.hivemq.spi.message.PUBLISH;
+import com.hivemq.spi.message.RetainedMessage;
+import com.hivemq.spi.security.ClientData;
+import com.hivemq.spi.services.RetainedMessageStore;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -92,7 +92,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
 
     public static class Node {
         private Optional<byte[]> payload = Optional.absent();
-        private HashMap<String, Node> children = new HashMap<>();
+        private final HashMap<String, Node> children = new HashMap<>();
 
         public Optional<byte[]> getPayload() {
             return payload;
@@ -174,7 +174,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             return remove && children.isEmpty() && !payload.isPresent();
         }
 
-        private ImmutableList<String> toPath(String topic) {
+        private static ImmutableList<String> toPath(String topic) {
             return ImmutableList.copyOf(topic.split("/"));
         }
     }

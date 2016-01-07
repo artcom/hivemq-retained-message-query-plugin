@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
 
 public interface QueryResult {
     int getStatus();
+
     String toJSON(ObjectMapper objectMapper) throws JsonProcessingException;
     ImmutableList<QueryResult> flatten();
 }
