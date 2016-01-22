@@ -155,6 +155,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
 
         private boolean removePath(ImmutableList<String> path) {
             if (path.isEmpty()) {
+                payload = Optional.absent();
                 return children.isEmpty();
             }
 
