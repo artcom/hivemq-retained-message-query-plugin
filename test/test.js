@@ -92,6 +92,40 @@ describe("HTTP API", function() {
       });
     });
 
+    it("should return no payload for unpublished topic with children", function() {
+      const query = this.publish({
+        [this.prefix + "/topic1/foo"]: "bar"
+      }).then(() => this.publish({
+        [this.prefix + "/topic1"]: null
+      })).then(() =>
+        postQuery({ topic: this.prefix + "/topic1", depth: 1 })
+      );
+
+      return expect(query).to.eventually.deep.equal({
+        topic: this.prefix + "/topic1",
+        children: [
+          { topic: this.prefix + "/topic1/foo", payload: "bar" }
+        ]
+      });
+    })
+
+    it("should return error for unpublished nested topic", function() {
+      const query = this.publish({
+        [this.prefix + "/foo/bar"]: "baz"
+      }).then(() => this.publish({
+        [this.prefix + "/foo/bar"]: null
+      })).then(() =>
+        postErrorQuery({ topic: this.prefix + "/foo/bar" })
+      );
+
+      return expect(query).to.eventually.include({
+          statusCode: 404
+      }).and.have.property("body").that.deep.equals({
+        topic: this.prefix + "/foo/bar",
+        error: 404
+      });
+    })
+
     describe("with Depth Parameter", function() {
       beforeEach(function() {
         return this.publish({
