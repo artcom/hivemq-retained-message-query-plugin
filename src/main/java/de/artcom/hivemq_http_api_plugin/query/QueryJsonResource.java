@@ -1,6 +1,7 @@
 package de.artcom.hivemq_http_api_plugin.query;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 import javax.ws.rs.POST;
@@ -8,8 +9,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 
@@ -31,9 +30,7 @@ public class QueryJsonResource extends QueryResource {
                 Query query = extractQuery(json);
                 result = singleQuery(query);
             } else if (json.isArray()) {
-                List<Query> queries = StreamSupport.stream(json.spliterator(), false)
-                        .map(QueryJsonResource::extractQuery)
-                        .collect(Collectors.toList());
+                List<Query> queries = Lists.transform(Lists.newArrayList(json), QueryJsonResource::extractQuery);
                 result = batchQuery(queries);
             }
         } catch (IOException ignored) {
