@@ -1,20 +1,16 @@
 const chai = require("chai")
-const mqtt = require("mqtt")
-const Promise = require("bluebird")
 const request = require("request-promise")
 const _ = require("lodash")
 
 chai.use(require("chai-as-promised"))
 const expect = chai.expect
 
-const TCP_BROKER_URI = process.env.TCP_BROKER_URI || "tcp://localhost"
-const HTTP_BROKER_URI = process.env.HTTP_BROKER_URI || "http://localhost:8080"
-
-const QUERY_URL = `${HTTP_BROKER_URI}/query`
+const config = require("./config")
+const hooks = require("./hooks")
 
 function postQuery(json, additionalOptions = {}) {
   const options = _.assign({ json }, additionalOptions)
-  return request.post(QUERY_URL, options)
+  return request.post(config.QUERY_URL, options)
 }
 
 function postErrorQuery(json) {
@@ -22,39 +18,15 @@ function postErrorQuery(json) {
 }
 
 describe("Query API", function() {
-  let client
+  before(hooks.connectMqttClient)
 
-  before(function(done) {
-    client = Promise.promisifyAll(mqtt.connect(TCP_BROKER_URI))
-    client.on("connect", done)
-  })
+  beforeEach(hooks.publishTestData({
+    topic1: "foo",
+    topic2: "bar"
+  }))
 
-  beforeEach(function() {
-    this.unpublishAll = {}
-
-    this.publish = function(data) {
-      _.assign(this.unpublishAll, _.mapValues(data, _.constant(null)))
-      return Promise.all(_.map(data, (payload, topic) =>
-        client.publishAsync(topic, payload, { retain: true, qos: 2 })
-      ))
-    }
-
-    this.topic = `hivemq-api-${Date.now()}`
-    this.prefix = `test/${this.topic}`
-
-    return this.publish({
-      [`${this.prefix}/topic1`]: "foo",
-      [`${this.prefix}/topic2`]: "bar"
-    })
-  })
-
-  afterEach(function() {
-    this.publish(this.unpublishAll)
-  })
-
-  after(function() {
-    client.end()
-  })
+  afterEach(hooks.unpublishTestData)
+  after(hooks.disconnectMqttClient)
 
   describe("Single Queries", function() {
     it("should return the payload of a topic", function() {
@@ -78,7 +50,7 @@ describe("Query API", function() {
 
     it("should return error for unpublished topic", function() {
       const query = this.publish({
-        [`${this.prefix}/topic1`]: null
+        topic1: null
       }).then(() =>
         postErrorQuery({ topic: `${this.prefix}/topic1` })
       )
@@ -93,9 +65,9 @@ describe("Query API", function() {
 
     it("should return no payload for unpublished topic with children", function() {
       const query = this.publish({
-        [`${this.prefix}/topic1/foo`]: "bar"
+        "topic1/foo": "bar"
       }).then(() => this.publish({
-        [`${this.prefix}/topic1`]: null
+        topic1: null
       })).then(() =>
         postQuery({ topic: `${this.prefix}/topic1`, depth: 1 })
       )
@@ -110,9 +82,9 @@ describe("Query API", function() {
 
     it("should return error for unpublished nested topic", function() {
       const query = this.publish({
-        [`${this.prefix}/foo/bar`]: "baz"
+        "foo/bar": "baz"
       }).then(() => this.publish({
-        [`${this.prefix}/foo/bar`]: null
+        "foo/bar": null
       })).then(() =>
         postErrorQuery({ topic: `${this.prefix}/foo/bar` })
       )
@@ -128,7 +100,7 @@ describe("Query API", function() {
     describe("with Depth Parameter", function() {
       beforeEach(function() {
         return this.publish({
-          [`${this.prefix}/topic2/deepTopic`]: "baz"
+          "topic2/deepTopic": "baz"
         })
       })
 
@@ -249,8 +221,8 @@ describe("Query API", function() {
 
     it("should support different depth parameters", function() {
       const query = this.publish({
-        [`${this.prefix}/topic1/child`]: "one",
-        [`${this.prefix}/topic2/child`]: "two"
+        "topic1/child": "one",
+        "topic2/child": "two"
       }).then(() =>
         postQuery([
           { topic: `${this.prefix}/topic1` },
@@ -278,8 +250,8 @@ describe("Query API", function() {
 
     it("should support different flatten parameters", function() {
       const query = this.publish({
-        [`${this.prefix}/topic1/child`]: "one",
-        [`${this.prefix}/topic2/child`]: "two"
+        "topic1/child": "one",
+        "topic2/child": "two"
       }).then(() =>
         postQuery([
           { topic: `${this.prefix}/topic1` },
@@ -380,8 +352,8 @@ describe("Query API", function() {
   describe("Wildcard Queries", function() {
     beforeEach(function() {
       return this.publish({
-        [`${this.prefix}/topic1/child`]: "one",
-        [`${this.prefix}/topic2/child`]: "two"
+        "topic1/child": "one",
+        "topic2/child": "two"
       })
     })
 
@@ -408,7 +380,7 @@ describe("Query API", function() {
 
     it("should return all matching deep children", function() {
       const query = this.publish({
-        [`${this.prefix}/topic2/deep/child`]: "deep"
+        "topic2/deep/child": "deep"
       }).then(() =>
         postQuery({ topic: `${this.prefix}/+/deep/child` })
       )
@@ -458,39 +430,6 @@ describe("Query API", function() {
       return expect(query).to.eventually.deep.equal([
         { topic: this.prefix }
       ])
-    })
-  })
-
-  describe("CORS Support", function() {
-    it("should handle preflight requests", function() {
-      const options = request(QUERY_URL, {
-        method: "OPTIONS",
-        json: { topic: `${this.prefix}/topic1` },
-        headers: {
-          origin: "localhost",
-          "access-control-request-method": "POST",
-          "access-control-request-headers": "origin, content-type, accept, authorization"
-        },
-        resolveWithFullResponse: true
-      })
-
-      return expect(options).to.eventually.have.property("headers").that.includes({
-        "access-control-allow-origin": "*",
-        "access-control-allow-methods": "POST",
-        "access-control-allow-headers": "origin, content-type, accept, authorization"
-      })
-    })
-
-    it("should set Access-Control-Allow-Origin", function() {
-      const post = request.post(QUERY_URL, {
-        json: { topic: `${this.prefix}/topic1` },
-        headers: { Origin: "localhost" },
-        resolveWithFullResponse: true
-      })
-
-      return expect(post).to.eventually.have.property("headers").that.includes({
-        "access-control-allow-origin": "*"
-      })
     })
   })
 })

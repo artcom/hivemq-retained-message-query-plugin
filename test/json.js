@@ -1,64 +1,35 @@
 const chai = require("chai")
-const mqtt = require("mqtt")
-const Promise = require("bluebird")
 const request = require("request-promise")
-const _ = require("lodash")
 
 chai.use(require("chai-as-promised"))
 const expect = chai.expect
 
-const TCP_BROKER_URI = process.env.TCP_BROKER_URI || "tcp://localhost"
-const HTTP_BROKER_URI = process.env.HTTP_BROKER_URI || "http://localhost:8080"
-
-const QUERY_URL = `${HTTP_BROKER_URI}/json`
+const config = require("./config")
+const hooks = require("./hooks")
 
 function postQuery(json, additionalOptions = {}) {
-  const options = _.assign({ json }, additionalOptions)
-  return request.post(QUERY_URL, options)
+  const options = Object.assign({ json }, additionalOptions)
+  return request.post(config.JSON_URL, options)
 }
 
 describe("Json API", function() {
-  let client
+  before(hooks.connectMqttClient)
 
-  before(function(done) {
-    client = Promise.promisifyAll(mqtt.connect(TCP_BROKER_URI))
-    client.on("connect", done)
-  })
+  beforeEach(hooks.publishTestData({
+    "topic1": "\"payload1\"",
+    "topic1/topic1": "\"payload11\"",
+    "topic1/topic2": "\"payload12\"",
+    "topic1/topic3/topic1": "\"payload131\"",
+    "topic2": "\"payload2\"",
+    "topic2/topic1": "\"payload21\"",
+    "topic2/topic2": "invalid-json",
+    "topic2/topic3": "invalid-json",
+    "topic2/topic3/topic1": "\"payload231\"",
+    "topic3": "{\"key1\":\"value1\", \"key2\":[1, 2, 3]}"
+  }))
 
-  beforeEach(function() {
-    this.unpublishAll = {}
-
-    this.publish = function(data) {
-      _.assign(this.unpublishAll, _.mapValues(data, _.constant(null)))
-      return Promise.all(_.map(data, (payload, topic) =>
-        client.publishAsync(topic, payload, { retain: true, qos: 2 })
-      ))
-    }
-
-    this.topic = `hivemq-api-${Date.now()}`
-    this.prefix = `test/${this.topic}`
-
-    return this.publish({
-      [`${this.prefix}/topic1`]: "\"payload1\"",
-      [`${this.prefix}/topic1/topic1`]: "\"payload11\"",
-      [`${this.prefix}/topic1/topic2`]: "\"payload12\"",
-      [`${this.prefix}/topic1/topic3/topic1`]: "\"payload131\"",
-      [`${this.prefix}/topic2`]: "\"payload2\"",
-      [`${this.prefix}/topic2/topic1`]: "\"payload21\"",
-      [`${this.prefix}/topic2/topic2`]: "invalid-json",
-      [`${this.prefix}/topic2/topic3`]: "invalid-json",
-      [`${this.prefix}/topic2/topic3/topic1`]: "\"payload231\"",
-      [`${this.prefix}/topic3`]: "{\"key1\":\"value1\", \"key2\":[1, 2, 3]}"
-    })
-  })
-
-  afterEach(function() {
-    this.publish(this.unpublishAll)
-  })
-
-  after(function() {
-    client.end()
-  })
+  afterEach(hooks.unpublishTestData)
+  after(hooks.disconnectMqttClient)
 
   describe("Single Queries", function() {
     it("should return multi-level hierarchy of a topic", function() {
@@ -253,39 +224,6 @@ describe("Json API", function() {
           }
         }
       ])
-    })
-  })
-
-  describe("CORS Support", function() {
-    it("should handle preflight requests", function() {
-      const options = request(QUERY_URL, {
-        method: "OPTIONS",
-        json: { topic: `${this.prefix}/topic1` },
-        headers: {
-          origin: "localhost",
-          "access-control-request-method": "POST",
-          "access-control-request-headers": "origin, content-type, accept, authorization"
-        },
-        resolveWithFullResponse: true
-      })
-
-      return expect(options).to.eventually.have.property("headers").that.includes({
-        "access-control-allow-origin": "*",
-        "access-control-allow-methods": "POST",
-        "access-control-allow-headers": "origin, content-type, accept, authorization"
-      })
-    })
-
-    it("should set Access-Control-Allow-Origin", function() {
-      const post = request.post(QUERY_URL, {
-        json: { topic: `${this.prefix}/topic1` },
-        headers: { Origin: "localhost" },
-        resolveWithFullResponse: true
-      })
-
-      return expect(post).to.eventually.have.property("headers").that.includes({
-        "access-control-allow-origin": "*"
-      })
     })
   })
 })
