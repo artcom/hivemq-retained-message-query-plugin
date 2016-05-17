@@ -14,8 +14,10 @@ import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 class QueryResultError implements IQueryResult {
-    private final String topic;
     private final int error;
+    @Nullable
+    private final String topic;
+    @Nullable
     private final String message;
 
     static QueryResultError queryFormat() {

@@ -2,6 +2,7 @@ package de.artcom.hivemq_http_api_plugin;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import com.hivemq.spi.annotations.Nullable;
 import com.hivemq.spi.callback.events.OnPublishReceivedCallback;
 import com.hivemq.spi.callback.exception.OnPublishReceivedException;
 import com.hivemq.spi.message.PUBLISH;
@@ -91,6 +92,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
     }
 
     public static class Node {
+        @Nullable
         public String payload;
         private final HashMap<String, Node> children = new HashMap<>();
 

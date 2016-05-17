@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
+import com.hivemq.spi.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.List;
@@ -16,10 +17,12 @@ import static java.net.HttpURLConnection.HTTP_OK;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 class QueryResultSuccess implements IQueryResult {
     private final String topic;
+    @Nullable
     private final String payload;
+    @Nullable
     private final List<QueryResultSuccess> children;
 
-    QueryResultSuccess(String topic, String payload, List<QueryResultSuccess> children) {
+    QueryResultSuccess(String topic, @Nullable String payload, @Nullable List<QueryResultSuccess> children) {
         this.topic = topic;
         this.payload = payload;
         this.children = children;
