@@ -5,11 +5,10 @@
   "description": "Integration Tests for the HiveMQ HTTP API",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --compilers js:babel/register"
+    "test": "mocha"
   },
   "author": "ART+COM AG",
   "dependencies": {
-    "babel": "^5.5.8",
     "bluebird": "^2.9.30",
     "chai": "^3.0.0",
     "chai-as-promised": "^5.1.0",
