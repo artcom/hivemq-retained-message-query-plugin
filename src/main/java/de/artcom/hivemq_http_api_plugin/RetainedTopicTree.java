@@ -11,6 +11,7 @@ import com.hivemq.spi.services.RetainedMessageStore;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -51,7 +52,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
 
         try {
             Node node = root.createTopic(topic);
-            node.payload = payload;
+            node.payload = new String(payload, Charset.forName("UTF-8"));
         } finally {
             lock.writeLock().unlock();
         }
@@ -90,7 +91,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
     }
 
     public static class Node {
-        public byte[] payload;
+        public String payload;
         private final HashMap<String, Node> children = new HashMap<>();
 
         public boolean hasChildren() {

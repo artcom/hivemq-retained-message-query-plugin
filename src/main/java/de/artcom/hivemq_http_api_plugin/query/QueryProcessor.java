@@ -103,10 +103,9 @@ class QueryProcessor {
             }
         }
 
-        String payload = node.payload != null ? new String(node.payload, Charset.forName("UTF-8")) : null;
         return new QueryResultSuccess(
                 topic,
-                payload,
+                node.payload,
                 children
         );
     }
