@@ -50,7 +50,7 @@ describe("Json API", function() {
       [this.prefix + "/topic1/topic3/topic1"]: "\"payload131\"",
       [this.prefix + "/topic2"]: "\"payload2\"",
       [this.prefix + "/topic2/topic1"]: "\"payload21\"",
-      [this.prefix + "/topic2/topic2"]: "\"payload22\"",
+      [this.prefix + "/topic2/topic2"]: "invalid-json",
       [this.prefix + "/topic2/topic3"]: "invalid-json",
       [this.prefix + "/topic2/topic3/topic1"]: "\"payload231\"",
       [this.prefix + "/topic3"]: "{\"key1\":\"value1\", \"key2\":[1, 2, 3]}",
@@ -78,7 +78,6 @@ describe("Json API", function() {
         },
         topic2: {
           topic1: "payload21",
-          topic2: "payload22",
           topic3: {
             topic1: "payload231"
           }
@@ -120,7 +119,6 @@ describe("Json API", function() {
         },
         {
           topic1: "payload21",
-          topic2: "payload22",
           topic3: {
             topic1: "payload231"
           }
@@ -164,7 +162,6 @@ describe("Json API", function() {
           },
           {
             topic1: "payload21",
-            topic2: "payload22",
             topic3: {
               topic1: "payload231"
             }
@@ -176,7 +173,6 @@ describe("Json API", function() {
         ],
         {
           topic1: "payload21",
-          topic2: "payload22",
           topic3: {
             topic1: "payload231"
           }
@@ -194,7 +190,6 @@ describe("Json API", function() {
         [],
         {
           topic1: "payload21",
-          topic2: "payload22",
           topic3: {
             topic1: "payload231"
           }
@@ -216,7 +211,6 @@ describe("Json API", function() {
         },
         {
           topic1: "payload21",
-          topic2: "payload22",
           topic3: {
             topic1: "payload231"
           }
@@ -254,7 +248,6 @@ describe("Json API", function() {
           },
           topic2: {
             topic1: "payload21",
-            topic2: "payload22",
             topic3: {
               topic1: "payload231"
             }
