@@ -1,53 +1,39 @@
 package de.artcom.hivemq_http_api_plugin.query;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.List;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 
 @Path("/json")
-public class QueryJsonResource extends QueryResource {
+public class QueryJsonResource extends Resource {
     @Inject
     public QueryJsonResource(QueryProcessor queryProcessor) {
         super(queryProcessor);
     }
 
-    @POST
-    public Response post(String body) {
-        IQueryResult result = QueryResultError.queryFormat();
-
+    @Override
+    Query parseQuery(JsonNode json) {
         try {
-            JsonNode json = objectMapper.readTree(body);
-
-            if (json.isObject()) {
-                Query query = extractQuery(json);
-                result = singleQuery(query);
-            } else if (json.isArray()) {
-                List<Query> queries = Lists.transform(Lists.newArrayList(json), QueryJsonResource::extractQuery);
-                result = batchQuery(queries);
-            }
-        } catch (IOException ignored) {
+            Query query = new Query();
+            query.topic = json.get("topic").textValue();
+            query.depth = -1;
+            return query;
+        } catch (NullPointerException ignored) {
+            throw new IllegalArgumentException();
         }
-
-        return createResponse(HTTP_OK, createPayload(result));
     }
 
-    private static Query extractQuery(JsonNode json) {
-        Query query = new Query();
-        query.topic = json.get("topic").textValue();
-        query.depth = -1;
-        query.flatten = false;
-        return query;
+    @Override
+    int getStatus(IQueryResult result) {
+        return HTTP_OK;
     }
 
-    private String createPayload(IQueryResult result) {
+    @Override
+    String getPayload(IQueryResult result) {
         JsonNode json = objectMapper.getNodeFactory().objectNode();
 
         try {
