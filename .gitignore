@@ -5,4 +5,5 @@ target
 
 .idea/workspace.xml
 .idea/uiDesigner.xml
+.idea/codeStyleSettings.xml
 .idea/libraries
