@@ -38,7 +38,7 @@ public class QueryResource {
                 Query query = objectMapper.readValue(body, Query.class);
                 result = singleQuery(query);
             } else if (json.isArray()) {
-                List<IQuery> queries = objectMapper.readValue(body, new TypeReference<List<Query>>() {});
+                List<Query> queries = objectMapper.readValue(body, new TypeReference<List<Query>>() {});
                 result = batchQuery(queries);
             }
         } catch (IOException ignored) {
@@ -56,13 +56,12 @@ public class QueryResource {
                 .build();
     }
 
-    private IQueryResult singleQuery(IQuery query) {
+    private IQueryResult singleQuery(Query query) {
         return queryProcessor.process(query);
     }
 
-    private IQueryResult batchQuery(List<IQuery> queries) {
+    private IQueryResult batchQuery(List<Query> queries) {
         List<IQueryResult> results = Lists.transform(queries, this::singleQuery);
-
         return new QueryResultList(results);
     }
 

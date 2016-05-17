@@ -23,29 +23,29 @@ class QueryProcessor {
         this.retainedTopicTree = retainedTopicTree;
     }
 
-    public IQueryResult process(IQuery query) {
-        if (query.getTopic().startsWith("/")) {
-            return QueryResultError.leadingSlash(query.getTopic());
-        } else if (query.getTopic().endsWith("/")) {
-            return QueryResultError.trailingSlash(query.getTopic());
+    public IQueryResult process(Query query) {
+        if (query.topic.startsWith("/")) {
+            return QueryResultError.leadingSlash(query.topic);
+        } else if (query.topic.endsWith("/")) {
+            return QueryResultError.trailingSlash(query.topic);
         }
 
-        IQueryResult result = query.getTopic().contains("+")
+        IQueryResult result = query.topic.contains("+")
                 ? processWildcardQuery(query)
                 : processSingleQuery(query);
 
-        if (query.getFlatten()) {
+        if (query.flatten) {
             return new QueryResultList(result.flatten());
         } else {
             return result;
         }
     }
 
-    private IQueryResult processWildcardQuery(IQuery query) {
-        List<String> parts = Lists.newArrayList(WILDCARD_TOPIC_SPLITTER.split(query.getTopic()));
+    private IQueryResult processWildcardQuery(Query query) {
+        List<String> parts = Lists.newArrayList(WILDCARD_TOPIC_SPLITTER.split(query.topic));
 
         if (parts.size() > 2) {
-            return QueryResultError.multipleWirdcards(query.getTopic());
+            return QueryResultError.multipleWirdcards(query.topic);
         }
 
         String prefix = parts.get(0);
@@ -63,7 +63,7 @@ class QueryProcessor {
 
                 if (match != null) {
                     String topic = joinPath(prefix, childName, suffix);
-                    results.add(createResult(match, topic, query.getDepth()));
+                    results.add(createResult(match, topic, query.depth));
                 }
             }
         }
@@ -80,14 +80,14 @@ class QueryProcessor {
         return suffix.isEmpty() ? topic : topic + "/" + suffix;
     }
 
-    private IQueryResult processSingleQuery(IQuery query) {
-        RetainedTopicTree.Node node = retainedTopicTree.getTopic(query.getTopic());
+    private IQueryResult processSingleQuery(Query query) {
+        RetainedTopicTree.Node node = retainedTopicTree.getTopic(query.topic);
 
         if (node == null) {
-            return QueryResultError.notFound(query.getTopic());
+            return QueryResultError.notFound(query.topic);
         }
 
-        return createResult(node, query.getTopic(), query.getDepth());
+        return createResult(node, query.topic, query.depth);
     }
 
     private static QueryResultSuccess createResult(RetainedTopicTree.Node node, String topic, int depth) {

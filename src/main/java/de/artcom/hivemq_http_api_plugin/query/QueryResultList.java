@@ -1,6 +1,5 @@
 package de.artcom.hivemq_http_api_plugin.query;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -12,9 +11,9 @@ import java.util.List;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 class QueryResultList implements IQueryResult {
-    private final List<IQueryResult> results;
+    private final Iterable<IQueryResult> results;
 
-    QueryResultList(List<IQueryResult> results) {
+    QueryResultList(Iterable<IQueryResult> results) {
         this.results = results;
     }
 

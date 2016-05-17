@@ -51,9 +51,9 @@ class QueryResultSuccess implements IQueryResult {
 
     @Override
     public JsonNode toPlainJson(ObjectMapper mapper) throws IOException {
-        if(children != null) {
-            ObjectNode result =  mapper.getNodeFactory().objectNode();
-            for(QueryResultSuccess child : children) {
+        if (children != null) {
+            ObjectNode result = mapper.getNodeFactory().objectNode();
+            for (QueryResultSuccess child : children) {
                 addChildToNode(child, result, mapper);
             }
             return result;
@@ -67,7 +67,7 @@ class QueryResultSuccess implements IQueryResult {
             String[] topicNames = child.topic.split("/");
             String topicName = topicNames[topicNames.length - 1];
             node.set(topicName, child.toPlainJson(mapper));
-        } catch(IOException ignored) {
+        } catch (IOException ignored) {
         }
     }
 

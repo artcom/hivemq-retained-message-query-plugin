@@ -1,10 +1,7 @@
 package de.artcom.hivemq_http_api_plugin.query;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.Lists;
 
@@ -15,6 +12,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -40,16 +39,26 @@ public class QueryJsonResource {
             JsonNode json = objectMapper.readTree(body);
 
             if (json.isObject()) {
-                IQuery query = objectMapper.readValue(body, QueryJson.class);
+                Query query = extractQuery(json);
                 result = singleQuery(query);
             } else if (json.isArray()) {
-                List<IQuery> queries = objectMapper.readValue(body, new TypeReference<List<QueryJson>>() {});
+                List<Query> queries = StreamSupport.stream(json.spliterator(), false)
+                        .map(QueryJsonResource::extractQuery)
+                        .collect(Collectors.toList());
                 result = batchQuery(queries);
             }
         } catch (IOException ignored) {
         }
 
         return createResponse(result);
+    }
+
+    private static Query extractQuery(JsonNode json) {
+        Query query = new Query();
+        query.topic = json.get("topic").textValue();
+        query.depth = -1;
+        query.flatten = false;
+        return query;
     }
 
     @OPTIONS
@@ -61,13 +70,12 @@ public class QueryJsonResource {
                 .build();
     }
 
-    private IQueryResult singleQuery(IQuery query) {
+    private IQueryResult singleQuery(Query query) {
         return queryProcessor.process(query);
     }
 
-    private IQueryResult batchQuery(List<IQuery> queries) {
+    private IQueryResult batchQuery(List<Query> queries) {
         List<IQueryResult> results = Lists.transform(queries, this::singleQuery);
-
         return new QueryResultList(results);
     }
 
