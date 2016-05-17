@@ -3,8 +3,11 @@ package de.artcom.hivemq_http_api_plugin.query;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
+import com.hivemq.spi.annotations.Nullable;
 
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
@@ -15,32 +18,24 @@ class QueryResultError implements IQueryResult {
     private final int error;
     private final String message;
 
-    public static QueryResultError queryFormat() {
-        return new QueryResultError(HTTP_BAD_REQUEST, "The request body must be a JSON object with a 'topic' and optional 'depth' property, or a JSON array of such objects.");
+    static QueryResultError queryFormat() {
+        return new QueryResultError(HTTP_BAD_REQUEST, null, "The request body must be a JSON object with a 'topic' and optional 'depth' property, or a JSON array of such objects.");
     }
 
-    public static QueryResultError leadingSlash(String topic) {
-        return new QueryResultError(topic, HTTP_BAD_REQUEST, "The topic cannot start with a slash.");
+    static QueryResultError leadingSlash(String topic) {
+        return new QueryResultError(HTTP_BAD_REQUEST, topic, "The topic cannot start with a slash.");
     }
 
-    public static QueryResultError trailingSlash(String topic) {
-        return new QueryResultError(topic, HTTP_BAD_REQUEST, "The topic cannot end with a slash.");
+    static QueryResultError trailingSlash(String topic) {
+        return new QueryResultError(HTTP_BAD_REQUEST, topic, "The topic cannot end with a slash.");
     }
 
-    public static QueryResultError multipleWirdcards(String topic) {
-        return new QueryResultError(topic, HTTP_BAD_REQUEST, "The topic cannot contain more than one wildcard.");
+    static QueryResultError multipleWirdcards(String topic) {
+        return new QueryResultError(HTTP_BAD_REQUEST, topic, "The topic cannot contain more than one wildcard.");
     }
 
-    public static QueryResultError notFound(String topic) {
-        return new QueryResultError(topic, HTTP_NOT_FOUND);
-    }
-
-    private QueryResultError(int error, String message) {
-        this(null, error, message);
-    }
-
-    private QueryResultError(String topic, int error) {
-        this(topic, error, null);
+    static QueryResultError notFound(String topic) {
+        return new QueryResultError(HTTP_NOT_FOUND, topic, null);
     }
 
     private QueryResultError(int error, @Nullable String topic, @Nullable String message) {
@@ -56,21 +51,27 @@ class QueryResultError implements IQueryResult {
     }
 
     @Override
-    public String toJSON(ObjectMapper objectMapper) throws JsonProcessingException {
-        return objectMapper.writeValueAsString(this);
-    }
+    public JsonNode toJson(ObjectMapper mapper) {
+        ObjectNode result = mapper.getNodeFactory().objectNode().put("error", error);
 
-    @Override
-    public ImmutableList<QueryResult> flatten() {
-        return ImmutableList.of(this);
-    }
+        if (topic != null) {
+            result.put("topic", topic);
+        }
+
+        if (message != null) {
+            result.put("message", message);
+        }
 
         return result;
     }
 
-    public int getError() {
-        return error;
+    @Override
+    public JsonNode toPlainJson(ObjectMapper mapper) throws JsonProcessingException {
+        return mapper.getNodeFactory().objectNode();
     }
 
+    @Override
+    public ImmutableList<IQueryResult> flatten() {
+        return ImmutableList.of(this);
     }
 }

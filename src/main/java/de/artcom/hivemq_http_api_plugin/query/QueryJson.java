@@ -1,9 +1,7 @@
 package de.artcom.hivemq_http_api_plugin.query;
 
-class Query implements IQuery {
+class QueryJson implements IQuery {
     public String topic;
-    public int depth;
-    public boolean flatten;
 
     @Override
     public String getTopic() {
@@ -12,11 +10,11 @@ class Query implements IQuery {
 
     @Override
     public int getDepth() {
-        return depth;
+        return -1;
     }
 
     @Override
     public boolean getFlatten() {
-        return flatten;
+        return false;
     }
 }

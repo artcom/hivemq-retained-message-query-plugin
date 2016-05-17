@@ -2,11 +2,13 @@ package de.artcom.hivemq_http_api_plugin.query;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 
-import java.util.Collections;
+import java.io.IOException;
 import java.util.List;
 
 import static java.net.HttpURLConnection.HTTP_OK;
@@ -30,11 +32,44 @@ class QueryResultSuccess implements IQueryResult {
     }
 
     @Override
-    public String toJSON(ObjectMapper objectMapper) throws JsonProcessingException {
-        return objectMapper.writeValueAsString(this);
+    public JsonNode toJson(ObjectMapper mapper) {
+        ObjectNode result = mapper.getNodeFactory().objectNode().put("topic", topic);
+
+        if (payload != null) {
+            result.put("payload", payload);
+        }
+
+        if (children != null) {
+            ArrayNode arrayNode = result.putArray("children");
+            for (QueryResultSuccess child : children) {
+                arrayNode.add(child.toJson(mapper));
+            }
+        }
+
+        return result;
     }
 
     @Override
+    public JsonNode toPlainJson(ObjectMapper mapper) throws IOException {
+        if(children != null) {
+            ObjectNode result =  mapper.getNodeFactory().objectNode();
+            for(QueryResultSuccess child : children) {
+                addChildToNode(child, result, mapper);
+            }
+            return result;
+        } else {
+            return mapper.readTree(payload);
+        }
+    }
+
+    private static void addChildToNode(QueryResultSuccess child, ObjectNode node, ObjectMapper mapper) {
+        try {
+            String[] topicNames = child.topic.split("/");
+            String topicName = topicNames[topicNames.length - 1];
+            node.set(topicName, child.toPlainJson(mapper));
+        } catch(IOException ignored) {
+        }
+    }
 
     @Override
     public ImmutableList<IQueryResult> flatten() {
@@ -54,11 +89,11 @@ class QueryResultSuccess implements IQueryResult {
         return topic;
     }
 
-    public Optional<String> getPayload() {
+    public String getPayload() {
         return payload;
     }
 
-    public Optional<List<QueryResultSuccess>> getChildren() {
+    public List<QueryResultSuccess> getChildren() {
         return children;
     }
 }

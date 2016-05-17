@@ -1,8 +1,10 @@
 package de.artcom.hivemq_http_api_plugin.query;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.Lists;
 
@@ -14,13 +16,16 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.List;
 
-@Path("/query")
-public class QueryResource {
+import static java.net.HttpURLConnection.HTTP_OK;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+
+@Path("/json")
+public class QueryJsonResource {
     private final ObjectMapper objectMapper;
     private final QueryProcessor queryProcessor;
 
     @Inject
-    public QueryResource(QueryProcessor queryProcessor) {
+    public QueryJsonResource(QueryProcessor queryProcessor) {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new GuavaModule());
 
@@ -35,10 +40,10 @@ public class QueryResource {
             JsonNode json = objectMapper.readTree(body);
 
             if (json.isObject()) {
-                Query query = objectMapper.readValue(body, Query.class);
+                IQuery query = objectMapper.readValue(body, QueryJson.class);
                 result = singleQuery(query);
             } else if (json.isArray()) {
-                List<IQuery> queries = objectMapper.readValue(body, new TypeReference<List<Query>>() {});
+                List<IQuery> queries = objectMapper.readValue(body, new TypeReference<List<QueryJson>>() {});
                 result = batchQuery(queries);
             }
         } catch (IOException ignored) {
@@ -67,14 +72,19 @@ public class QueryResource {
     }
 
     private Response createResponse(IQueryResult result) {
-        JsonNode json = result.toJson(objectMapper);
-        return Response
-                .status(result.getStatus())
-                .entity(json.toString())
-                .header("Content-Type", "application/json; charset=utf-8")
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Headers", "origin, content-type, accept, authorization")
-                .header("Access-Control-Allow-Methods", "POST")
-                .build();
+        try {
+            JsonNode json = result.toPlainJson(objectMapper);
+            JsonNode jsonContainer = json.isContainerNode() ? json : objectMapper.getNodeFactory().objectNode();
+            return Response
+                    .status(HTTP_OK)
+                    .entity(jsonContainer.toString())
+                    .header("Content-Type", "application/json; charset=utf-8")
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Headers", "origin, content-type, accept, authorization")
+                    .header("Access-Control-Allow-Methods", "POST")
+                    .build();
+        } catch (IOException e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

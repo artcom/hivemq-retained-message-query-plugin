@@ -21,7 +21,7 @@ function postErrorQuery(json) {
   return postQuery(json, { simple: false, resolveWithFullResponse: true });
 }
 
-describe("HTTP API", function() {
+describe("Query API", function() {
   let client;
 
   before(function(done) {

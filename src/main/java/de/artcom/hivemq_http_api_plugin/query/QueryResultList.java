@@ -1,20 +1,20 @@
 package de.artcom.hivemq_http_api_plugin.query;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Joiner;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableList;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 
-public class QueryResultList implements QueryResult {
-    public static final Joiner COMMA_JOINER = Joiner.on(',');
-    private final List<QueryResult> results;
+class QueryResultList implements IQueryResult {
+    private final List<IQueryResult> results;
 
-    public QueryResultList(List<QueryResult> results) {
+    QueryResultList(List<IQueryResult> results) {
         this.results = results;
     }
 
@@ -24,21 +24,32 @@ public class QueryResultList implements QueryResult {
     }
 
     @Override
-    public String toJSON(ObjectMapper objectMapper) throws JsonProcessingException {
-        List<String> jsonResults = new ArrayList<>();
+    public JsonNode toJson(ObjectMapper mapper) {
+        ArrayNode resultArray = mapper.getNodeFactory().arrayNode();
 
-        for (QueryResult result : results) {
-            jsonResults.add(result.toJSON(objectMapper));
+        for (IQueryResult result : results) {
+            resultArray.add(result.toJson(mapper));
         }
 
-        return "[" + COMMA_JOINER.join(jsonResults) + "]";
+        return resultArray;
     }
 
     @Override
-    public ImmutableList<QueryResult> flatten() {
-        ImmutableList.Builder<QueryResult> builder = ImmutableList.<QueryResult>builder();
+    public JsonNode toPlainJson(ObjectMapper mapper) throws IOException {
+        ArrayNode resultArray = mapper.getNodeFactory().arrayNode();
 
-        for (QueryResult result : results) {
+        for (IQueryResult result : results) {
+            resultArray.add(result.toPlainJson(mapper));
+        }
+
+        return resultArray;
+    }
+
+    @Override
+    public ImmutableList<IQueryResult> flatten() {
+        ImmutableList.Builder<IQueryResult> builder = ImmutableList.<IQueryResult>builder();
+
+        for (IQueryResult result : results) {
             builder.addAll(result.flatten());
         }
 
