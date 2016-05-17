@@ -16,11 +16,11 @@ import java.util.List;
 
 @Path("/query")
 public class QueryResource {
-    private final ObjectMapper objectMapper;
+    final ObjectMapper objectMapper;
     private final QueryProcessor queryProcessor;
 
     @Inject
-    public QueryResource(QueryProcessor queryProcessor) {
+    QueryResource(QueryProcessor queryProcessor) {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new GuavaModule());
 
@@ -44,7 +44,7 @@ public class QueryResource {
         } catch (IOException ignored) {
         }
 
-        return createResponse(result);
+        return createResponse(result.getStatus(), result.toJson(objectMapper).toString());
     }
 
     @OPTIONS
@@ -56,20 +56,19 @@ public class QueryResource {
                 .build();
     }
 
-    private IQueryResult singleQuery(Query query) {
+    IQueryResult singleQuery(Query query) {
         return queryProcessor.process(query);
     }
 
-    private IQueryResult batchQuery(List<Query> queries) {
+    IQueryResult batchQuery(List<Query> queries) {
         List<IQueryResult> results = Lists.transform(queries, this::singleQuery);
         return new QueryResultList(results);
     }
 
-    private Response createResponse(IQueryResult result) {
-        JsonNode json = result.toJson(objectMapper);
+    static Response createResponse(int status, String payload) {
         return Response
-                .status(result.getStatus())
-                .entity(json.toString())
+                .status(status)
+                .entity(payload)
                 .header("Content-Type", "application/json; charset=utf-8")
                 .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Headers", "origin, content-type, accept, authorization")
