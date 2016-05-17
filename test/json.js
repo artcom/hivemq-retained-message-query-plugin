@@ -103,7 +103,7 @@ describe("Json API", function() {
     });
   });
 
-  +describe("Batch Queries", function() {
+  describe("Batch Queries", function() {
     it("should return the values of multiple topics", function() {
       const query = postQuery([
         { topic: this.prefix + "/topic1" },
