@@ -41,9 +41,7 @@ class QueryResultSuccess implements IQueryResult {
 
         if (children != null) {
             ArrayNode arrayNode = result.putArray("children");
-            for (QueryResultSuccess child : children) {
-                arrayNode.add(child.toJson(mapper));
-            }
+            children.forEach((child) -> arrayNode.add(child.toJson(mapper)));
         }
 
         return result;
@@ -53,9 +51,7 @@ class QueryResultSuccess implements IQueryResult {
     public JsonNode toPlainJson(ObjectMapper mapper) throws IOException {
         if (children != null) {
             ObjectNode result = mapper.getNodeFactory().objectNode();
-            for (QueryResultSuccess child : children) {
-                addChildToNode(child, result, mapper);
-            }
+            children.forEach((child) -> addChildToNode(child, result, mapper));
             return result;
         } else {
             return mapper.readTree(payload);
@@ -77,9 +73,7 @@ class QueryResultSuccess implements IQueryResult {
         builder.add(new QueryResultSuccess(topic, payload, null));
 
         if (children != null) {
-            for (IQueryResult child : children) {
-                builder.addAll(child.flatten());
-            }
+            children.forEach((child) -> builder.addAll(child.flatten()));
         }
 
         return builder.build();
