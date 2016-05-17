@@ -2,13 +2,13 @@ package de.artcom.hivemq_http_api_plugin;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import com.hivemq.spi.annotations.Nullable;
 import com.hivemq.spi.callback.events.OnPublishReceivedCallback;
 import com.hivemq.spi.callback.exception.OnPublishReceivedException;
 import com.hivemq.spi.message.PUBLISH;
 import com.hivemq.spi.message.RetainedMessage;
 import com.hivemq.spi.security.ClientData;
 import com.hivemq.spi.services.RetainedMessageStore;
+import org.jetbrains.annotations.Nullable;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
