@@ -12,8 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class QueryProcessor {
-
+class QueryProcessor {
     private static final Splitter WILDCARD_TOPIC_SPLITTER = Splitter
             .on('+')
             .trimResults(CharMatcher.is('/'));
@@ -73,11 +72,11 @@ public class QueryProcessor {
         return new QueryResultList(results);
     }
 
-    private String joinPath(String prefix, String childName) {
+    private static String joinPath(String prefix, String childName) {
         return prefix.isEmpty() ? childName : prefix + "/" + childName;
     }
 
-    private String joinPath(String prefix, String childName, String suffix) {
+    private static String joinPath(String prefix, String childName, String suffix) {
         String topic = joinPath(prefix, childName);
         return suffix.isEmpty() ? topic : topic + "/" + suffix;
     }
@@ -92,7 +91,7 @@ public class QueryProcessor {
         return createResult(node, query.topic, query.depth);
     }
 
-    private QueryResultSuccess createResult(RetainedTopicTree.Node node, String topic, int depth) {
+    private static QueryResultSuccess createResult(RetainedTopicTree.Node node, String topic, int depth) {
         List<QueryResultSuccess> children = null;
 
         if (depth != 0 && node.hasChildren()) {

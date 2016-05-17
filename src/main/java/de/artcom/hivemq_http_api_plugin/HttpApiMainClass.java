@@ -6,7 +6,7 @@ import com.hivemq.spi.callback.registry.CallbackRegistry;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
-public class HttpApiMainClass extends PluginEntryPoint {
+class HttpApiMainClass extends PluginEntryPoint {
 
     private final HttpApiService httpApiService;
     private final RetainedTopicTree retainedTopicTree;
