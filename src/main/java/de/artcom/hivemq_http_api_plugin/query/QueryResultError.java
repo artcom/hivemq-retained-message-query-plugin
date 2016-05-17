@@ -4,17 +4,16 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class QueryResultError implements QueryResult {
-    private final Optional<String> topic;
+class QueryResultError implements IQueryResult {
+    private final String topic;
     private final int error;
-    private final Optional<String> message;
+    private final String message;
 
     public static QueryResultError queryFormat() {
         return new QueryResultError(HTTP_BAD_REQUEST, "The request body must be a JSON object with a 'topic' and optional 'depth' property, or a JSON array of such objects.");
@@ -44,10 +43,10 @@ public class QueryResultError implements QueryResult {
         this(topic, error, null);
     }
 
-    private QueryResultError(String topic, int error, String message) {
-        this.topic = Optional.fromNullable(topic);
+    private QueryResultError(int error, @Nullable String topic, @Nullable String message) {
+        this.topic = topic;
         this.error = error;
-        this.message = Optional.fromNullable(message);
+        this.message = message;
     }
 
     @Override
@@ -66,15 +65,12 @@ public class QueryResultError implements QueryResult {
         return ImmutableList.of(this);
     }
 
-    public Optional<String> getTopic() {
-        return topic;
+        return result;
     }
 
     public int getError() {
         return error;
     }
 
-    public Optional<String> getMessage() {
-        return message;
     }
 }

@@ -1,6 +1,5 @@
 package de.artcom.hivemq_http_api_plugin;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.hivemq.spi.callback.events.OnPublishReceivedCallback;
@@ -52,7 +51,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
 
         try {
             Node node = root.createTopic(topic);
-            node.setPayload(payload);
+            node.payload = payload;
         } finally {
             lock.writeLock().unlock();
         }
@@ -91,16 +90,8 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
     }
 
     public static class Node {
-        private Optional<byte[]> payload = Optional.absent();
+        public byte[] payload;
         private final HashMap<String, Node> children = new HashMap<>();
-
-        public Optional<byte[]> getPayload() {
-            return payload;
-        }
-
-        public void setPayload(byte[] payload) {
-            this.payload = Optional.of(payload);
-        }
 
         public boolean hasChildren() {
             return !children.isEmpty();
@@ -155,7 +146,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
 
         private boolean removePath(ImmutableList<String> path) {
             if (path.isEmpty()) {
-                payload = Optional.absent();
+                payload = null;
                 return children.isEmpty();
             }
 
@@ -172,7 +163,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
                 children.remove(name);
             }
 
-            return remove && children.isEmpty() && !payload.isPresent();
+            return remove && children.isEmpty() && payload == null;
         }
 
         private static ImmutableList<String> toPath(String topic) {

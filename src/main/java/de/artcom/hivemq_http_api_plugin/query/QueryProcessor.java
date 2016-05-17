@@ -1,7 +1,6 @@
 package de.artcom.hivemq_http_api_plugin.query;
 
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import de.artcom.hivemq_http_api_plugin.RetainedTopicTree;
@@ -104,10 +103,11 @@ class QueryProcessor {
             }
         }
 
+        String payload = node.payload != null ? new String(node.payload, Charset.forName("UTF-8")) : null;
         return new QueryResultSuccess(
                 topic,
-                node.getPayload().transform(bytes -> new String(bytes, Charset.forName("UTF-8"))),
-                Optional.fromNullable(children)
+                payload,
+                children
         );
     }
 }
