@@ -68,7 +68,7 @@ abstract class Resource {
 
     abstract Query parseQuery(JsonNode json) throws ParameterException;
 
-    abstract QueryResponse formatResult(QueryResult result);
+    abstract QueryResponse formatResult(QueryResult result, Query query);
 
     abstract QueryResponse formatException(QueryException exception);
 
@@ -79,14 +79,14 @@ abstract class Resource {
                 ArrayNode array = objectMapper.getNodeFactory().arrayNode();
 
                 for (QueryResult result : queryProcessor.processWildcardQuery(query)) {
-                    QueryResponse queryResponse = formatResult(result);
+                    QueryResponse queryResponse = formatResult(result, query);
                     array.add(queryResponse.body);
                 }
 
                 return QueryResponse.success(array);
             } else {
                 QueryResult result = queryProcessor.processSingleQuery(query);
-                return formatResult(result);
+                return formatResult(result, query);
             }
         } catch (QueryException exception) {
             return formatException(exception);

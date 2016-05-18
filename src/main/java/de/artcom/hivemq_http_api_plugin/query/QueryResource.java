@@ -1,6 +1,8 @@
 package de.artcom.hivemq_http_api_plugin.query;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import de.artcom.hivemq_http_api_plugin.query.exceptions.*;
 
 import javax.inject.Inject;
@@ -51,8 +53,12 @@ public class QueryResource extends Resource {
     }
 
     @Override
-    QueryResponse formatResult(QueryResult result) {
-        return QueryResponse.success(objectMapper.valueToTree(result));
+    QueryResponse formatResult(QueryResult result, Query query) {
+        if (query.flatten) {
+            return QueryResponse.success(objectMapper.valueToTree(result.flatten()));
+        } else {
+            return QueryResponse.success(objectMapper.valueToTree(result));
+        }
     }
 
     @Override

@@ -42,7 +42,7 @@ public class QueryJsonResource extends Resource {
     }
 
     @Override
-    QueryResponse formatResult(QueryResult result) {
+    QueryResponse formatResult(QueryResult result, Query query) {
         ObjectNode object = objectMapper.getNodeFactory().objectNode();
         List<QueryResult> children = result.getChildren();
 

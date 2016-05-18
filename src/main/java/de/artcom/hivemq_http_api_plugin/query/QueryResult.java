@@ -1,17 +1,10 @@
 package de.artcom.hivemq_http_api_plugin.query;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.List;
-
-import static java.net.HttpURLConnection.HTTP_OK;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 class QueryResult {
@@ -27,32 +20,8 @@ class QueryResult {
         this.children = children;
     }
 
-    @JsonIgnore
-    public int getStatus() {
-        return HTTP_OK;
-    }
-
-    public JsonNode toPlainJson(ObjectMapper mapper) throws IOException {
-        if (children != null) {
-            ObjectNode result = mapper.getNodeFactory().objectNode();
-            children.forEach((child) -> addChildToNode(child, result, mapper));
-            return result;
-        } else {
-            return mapper.readTree(payload);
-        }
-    }
-
-    private static void addChildToNode(QueryResult child, ObjectNode node, ObjectMapper mapper) {
-        try {
-            String[] topicNames = child.topic.split("/");
-            String topicName = topicNames[topicNames.length - 1];
-            node.set(topicName, child.toPlainJson(mapper));
-        } catch (IOException ignored) {
-        }
-    }
-
     public ImmutableList<QueryResult> flatten() {
-        ImmutableList.Builder<QueryResult> builder = ImmutableList.<QueryResult>builder();
+        ImmutableList.Builder<QueryResult> builder = ImmutableList.builder();
         builder.add(new QueryResult(topic, payload, null));
 
         if (children != null) {
@@ -66,10 +35,12 @@ class QueryResult {
         return topic;
     }
 
+    @Nullable
     public String getPayload() {
         return payload;
     }
 
+    @Nullable
     public List<QueryResult> getChildren() {
         return children;
     }
