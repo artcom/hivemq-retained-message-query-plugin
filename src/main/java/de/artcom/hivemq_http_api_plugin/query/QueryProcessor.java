@@ -23,7 +23,7 @@ class QueryProcessor {
         this.retainedTopicTree = retainedTopicTree;
     }
 
-    public QueryResultSuccess processSingleQuery(Query query) throws TopicNotFoundException {
+    public QueryResult processSingleQuery(Query query) throws TopicNotFoundException {
         RetainedTopicTree.Node node = retainedTopicTree.getTopic(query.topic);
 
         if (node == null) {
@@ -33,13 +33,13 @@ class QueryProcessor {
         return createResult(node, query.topic, query.depth);
     }
 
-    public List<QueryResultSuccess> processWildcardQuery(Query query) {
+    public List<QueryResult> processWildcardQuery(Query query) {
         List<String> parts = Lists.newArrayList(WILDCARD_TOPIC_SPLITTER.split(query.topic));
 
         String prefix = parts.get(0);
         String suffix = parts.get(1);
 
-        List<QueryResultSuccess> results = new ArrayList<>();
+        List<QueryResult> results = new ArrayList<>();
         RetainedTopicTree.Node node = retainedTopicTree.getTopic(prefix);
 
         if (node != null) {
@@ -68,8 +68,8 @@ class QueryProcessor {
         return suffix.isEmpty() ? topic : topic + "/" + suffix;
     }
 
-    private static QueryResultSuccess createResult(RetainedTopicTree.Node node, String topic, int depth) {
-        List<QueryResultSuccess> children = null;
+    private static QueryResult createResult(RetainedTopicTree.Node node, String topic, int depth) {
+        List<QueryResult> children = null;
 
         if (depth != 0 && node.hasChildren()) {
             children = new ArrayList<>();
@@ -81,7 +81,7 @@ class QueryProcessor {
             }
         }
 
-        return new QueryResultSuccess(
+        return new QueryResult(
                 topic,
                 node.payload,
                 children

@@ -2,18 +2,23 @@ package de.artcom.hivemq_http_api_plugin.query;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.Lists;
+import de.artcom.hivemq_http_api_plugin.query.exceptions.ParameterException;
 import de.artcom.hivemq_http_api_plugin.query.exceptions.QueryException;
 
 import javax.inject.Inject;
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.POST;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Resource {
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static java.net.HttpURLConnection.HTTP_OK;
+
+abstract class Resource {
     final ObjectMapper objectMapper;
     private final QueryProcessor queryProcessor;
 
@@ -25,8 +30,7 @@ public abstract class Resource {
         this.queryProcessor = queryProcessor;
     }
 
-    @OPTIONS
-    public static Response options() {
+    public Response options() {
         return Response.ok("")
                 .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Headers", "origin, content-type, accept, authorization")
@@ -34,60 +38,81 @@ public abstract class Resource {
                 .build();
     }
 
-    @POST
     public Response post(String body) {
-        IQueryResult result = QueryResultError.queryFormat();
+        try {
+            JsonNode result = computeResult(body);
+            return createResponse(HTTP_OK, result);
+        } catch (IOException ignored) {
+            JsonNode errorObject = createErrorObject(HTTP_BAD_REQUEST, "The request body must be a JSON object");
+            return createResponse(HTTP_BAD_REQUEST, errorObject);
+        }
+    }
 
+    private JsonNode computeResult(String body) throws IOException {
         try {
             JsonNode json = objectMapper.readTree(body);
 
             if (json.isObject()) {
                 Query query = parseQuery(json);
-                result = singleQuery(query);
+                return singleQuery(query);
             } else if (json.isArray()) {
-                List<Query> queries = Lists.transform(Lists.newArrayList(json), this::parseQuery);
-                result = batchQuery(queries);
-            }
-        } catch (IOException | IllegalArgumentException ignored) {
-        }
+                List<Query> queries = new ArrayList<>();
 
-        return createResponse(getStatus(result), getPayload(result));
+                for (JsonNode queryJson : json) {
+                    queries.add(parseQuery(queryJson));
+                }
+
+                return batchQuery(queries);
+            }
+
+            throw new ParameterException();
+        } catch (ParameterException exception) {
+            return formatException(exception);
+        }
     }
 
-    abstract Query parseQuery(JsonNode json);
+    abstract Query parseQuery(JsonNode json) throws ParameterException;
 
-    abstract IQueryResult formatResult(QueryResultSuccess result);
+    abstract JsonNode formatResult(QueryResult result);
 
-    abstract IQueryResult formatException(QueryException exception, Query query);
+    abstract JsonNode formatException(QueryException exception);
 
-    abstract int getStatus(IQueryResult result);
-
-    abstract String getPayload(IQueryResult result);
-
-    IQueryResult singleQuery(Query query) {
+    private JsonNode singleQuery(Query query) {
         try {
             query.validate();
             if (query.isWildcardQuery()) {
-                List<QueryResultSuccess> results = queryProcessor.processWildcardQuery(query);
-                return new QueryResultList(Lists.transform(results, this::formatResult));
+                ArrayNode array = objectMapper.getNodeFactory().arrayNode();
+
+                for (QueryResult result : queryProcessor.processWildcardQuery(query)) {
+                    array.add(formatResult(result));
+                }
+
+                return array;
             } else {
-                QueryResultSuccess result = queryProcessor.processSingleQuery(query);
+                QueryResult result = queryProcessor.processSingleQuery(query);
                 return formatResult(result);
             }
         } catch (QueryException exception) {
-            return formatException(exception, query);
+            return formatException(exception);
         }
     }
 
-    IQueryResult batchQuery(List<Query> queries) {
-        List<IQueryResult> results = Lists.transform(queries, this::singleQuery);
-        return new QueryResultList(results);
+    private JsonNode batchQuery(List<Query> queries) {
+        List<JsonNode> results = Lists.transform(queries, this::singleQuery);
+        return objectMapper.getNodeFactory().arrayNode().addAll(results);
     }
 
-    static Response createResponse(int status, String payload) {
+    JsonNode createErrorObject(int status, String message) {
+        ObjectNode error = objectMapper.getNodeFactory().objectNode();
+        error.set("error", objectMapper.getNodeFactory().numberNode(status));
+        error.set("message", objectMapper.getNodeFactory().textNode(message));
+        return error;
+    }
+
+    private static Response createResponse(int status, JsonNode body) {
         return Response
                 .status(status)
-                .entity(payload)
+                .entity(body)
                 .header("Content-Type", "application/json; charset=utf-8")
                 .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Headers", "origin, content-type, accept, authorization")

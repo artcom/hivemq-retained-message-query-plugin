@@ -1,10 +1,17 @@
 package de.artcom.hivemq_http_api_plugin.query;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import de.artcom.hivemq_http_api_plugin.query.exceptions.QueryException;
+import de.artcom.hivemq_http_api_plugin.query.exceptions.*;
 
 import javax.inject.Inject;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.Response;
+
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 
 @Path("/query")
 public class QueryResource extends Resource {
@@ -13,8 +20,18 @@ public class QueryResource extends Resource {
         super(queryProcessor);
     }
 
+    @OPTIONS
+    public Response options() {
+        return super.options();
+    }
+
+    @POST
+    public Response post(String body) {
+        return super.post(body);
+    }
+
     @Override
-    Query parseQuery(JsonNode json) {
+    Query parseQuery(JsonNode json) throws ParameterException {
         try {
             Query query = new Query();
             query.topic = json.get("topic").textValue();
@@ -29,27 +46,30 @@ public class QueryResource extends Resource {
 
             return query;
         } catch (NullPointerException ignored) {
-            throw new IllegalArgumentException();
+            throw new ParameterException();
         }
     }
 
     @Override
-    IQueryResult formatResult(QueryResultSuccess result) {
-        return result;
+    JsonNode formatResult(QueryResult result) {
+        return objectMapper.valueToTree(result);
     }
 
     @Override
-    IQueryResult formatException(QueryException exception, Query query) {
-        return QueryResultError.notFound(query.topic);
-    }
+    JsonNode formatException(QueryException exception) {
+        if (exception instanceof LeadingSlashException) {
+            return createErrorObject(HTTP_BAD_REQUEST, "The topic cannot start with a slash.");
+        } else if (exception instanceof TrailingSlashException) {
+            return createErrorObject(HTTP_BAD_REQUEST, "The topic cannot end with a slash.");
+        } else if (exception instanceof MultipleWildcardsException) {
+            return createErrorObject(HTTP_BAD_REQUEST, "The topic cannot contain more than one wildcard.");
+        } else if (exception instanceof ParameterException) {
+            return createErrorObject(HTTP_BAD_REQUEST, "The request body must be a JSON object with a 'topic'" +
+                    " and optional 'depth' property, or a JSON array of such objects.");
+        } else if(exception instanceof TopicNotFoundException) {
+            return createErrorObject(HTTP_NOT_FOUND, "The topic does not exist.");
+        }
 
-    @Override
-    int getStatus(IQueryResult result) {
-        return result.getStatus();
-    }
-
-    @Override
-    String getPayload(IQueryResult result) {
-        return result.toJson(objectMapper).toString();
+        return createErrorObject(HTTP_INTERNAL_ERROR, "Internal error");
     }
 }

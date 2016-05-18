@@ -133,8 +133,6 @@ describe("Json API", function() {
             }
           },
           {
-            key1: "value1",
-            key2: [1, 2, 3]
           }
         ],
         {
@@ -182,8 +180,6 @@ describe("Json API", function() {
           }
         },
         {
-          key1: "value1",
-          key2: [1, 2, 3]
         }
       ])
     })

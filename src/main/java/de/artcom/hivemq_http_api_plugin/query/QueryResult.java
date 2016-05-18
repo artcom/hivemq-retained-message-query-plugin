@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.Nullable;
@@ -15,42 +14,24 @@ import java.util.List;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-class QueryResultSuccess implements IQueryResult {
+class QueryResult {
     private final String topic;
     @Nullable
     private final String payload;
     @Nullable
-    private final List<QueryResultSuccess> children;
+    private final List<QueryResult> children;
 
-    QueryResultSuccess(String topic, @Nullable String payload, @Nullable List<QueryResultSuccess> children) {
+    QueryResult(String topic, @Nullable String payload, @Nullable List<QueryResult> children) {
         this.topic = topic;
         this.payload = payload;
         this.children = children;
     }
 
-    @Override
     @JsonIgnore
     public int getStatus() {
         return HTTP_OK;
     }
 
-    @Override
-    public JsonNode toJson(ObjectMapper mapper) {
-        ObjectNode result = mapper.getNodeFactory().objectNode().put("topic", topic);
-
-        if (payload != null) {
-            result.put("payload", payload);
-        }
-
-        if (children != null) {
-            ArrayNode arrayNode = result.putArray("children");
-            children.forEach((child) -> arrayNode.add(child.toJson(mapper)));
-        }
-
-        return result;
-    }
-
-    @Override
     public JsonNode toPlainJson(ObjectMapper mapper) throws IOException {
         if (children != null) {
             ObjectNode result = mapper.getNodeFactory().objectNode();
@@ -61,7 +42,7 @@ class QueryResultSuccess implements IQueryResult {
         }
     }
 
-    private static void addChildToNode(QueryResultSuccess child, ObjectNode node, ObjectMapper mapper) {
+    private static void addChildToNode(QueryResult child, ObjectNode node, ObjectMapper mapper) {
         try {
             String[] topicNames = child.topic.split("/");
             String topicName = topicNames[topicNames.length - 1];
@@ -70,10 +51,9 @@ class QueryResultSuccess implements IQueryResult {
         }
     }
 
-    @Override
-    public ImmutableList<IQueryResult> flatten() {
-        ImmutableList.Builder<IQueryResult> builder = ImmutableList.<IQueryResult>builder();
-        builder.add(new QueryResultSuccess(topic, payload, null));
+    public ImmutableList<QueryResult> flatten() {
+        ImmutableList.Builder<QueryResult> builder = ImmutableList.<QueryResult>builder();
+        builder.add(new QueryResult(topic, payload, null));
 
         if (children != null) {
             children.forEach((child) -> builder.addAll(child.flatten()));
@@ -90,7 +70,7 @@ class QueryResultSuccess implements IQueryResult {
         return payload;
     }
 
-    public List<QueryResultSuccess> getChildren() {
+    public List<QueryResult> getChildren() {
         return children;
     }
 }
