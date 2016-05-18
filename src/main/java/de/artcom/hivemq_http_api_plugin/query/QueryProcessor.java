@@ -4,9 +4,9 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import de.artcom.hivemq_http_api_plugin.RetainedTopicTree;
+import de.artcom.hivemq_http_api_plugin.query.exceptions.TopicNotFoundException;
 
 import javax.inject.Inject;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,35 +23,23 @@ class QueryProcessor {
         this.retainedTopicTree = retainedTopicTree;
     }
 
-    public IQueryResult process(Query query) {
-        if (query.topic.startsWith("/")) {
-            return QueryResultError.leadingSlash(query.topic);
-        } else if (query.topic.endsWith("/")) {
-            return QueryResultError.trailingSlash(query.topic);
+    public QueryResultSuccess processSingleQuery(Query query) throws TopicNotFoundException {
+        RetainedTopicTree.Node node = retainedTopicTree.getTopic(query.topic);
+
+        if (node == null) {
+            throw new TopicNotFoundException();
         }
 
-        IQueryResult result = query.topic.contains("+")
-                ? processWildcardQuery(query)
-                : processSingleQuery(query);
-
-        if (query.flatten) {
-            return new QueryResultList(result.flatten());
-        } else {
-            return result;
-        }
+        return createResult(node, query.topic, query.depth);
     }
 
-    private IQueryResult processWildcardQuery(Query query) {
+    public List<QueryResultSuccess> processWildcardQuery(Query query) {
         List<String> parts = Lists.newArrayList(WILDCARD_TOPIC_SPLITTER.split(query.topic));
-
-        if (parts.size() > 2) {
-            return QueryResultError.multipleWirdcards(query.topic);
-        }
 
         String prefix = parts.get(0);
         String suffix = parts.get(1);
 
-        List<IQueryResult> results = new ArrayList<>();
+        List<QueryResultSuccess> results = new ArrayList<>();
         RetainedTopicTree.Node node = retainedTopicTree.getTopic(prefix);
 
         if (node != null) {
@@ -68,7 +56,7 @@ class QueryProcessor {
             }
         }
 
-        return new QueryResultList(results);
+        return results;
     }
 
     private static String joinPath(String prefix, String childName) {
@@ -78,16 +66,6 @@ class QueryProcessor {
     private static String joinPath(String prefix, String childName, String suffix) {
         String topic = joinPath(prefix, childName);
         return suffix.isEmpty() ? topic : topic + "/" + suffix;
-    }
-
-    private IQueryResult processSingleQuery(Query query) {
-        RetainedTopicTree.Node node = retainedTopicTree.getTopic(query.topic);
-
-        if (node == null) {
-            return QueryResultError.notFound(query.topic);
-        }
-
-        return createResult(node, query.topic, query.depth);
     }
 
     private static QueryResultSuccess createResult(RetainedTopicTree.Node node, String topic, int depth) {

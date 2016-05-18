@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.Lists;
+import de.artcom.hivemq_http_api_plugin.query.exceptions.QueryException;
 
 import javax.inject.Inject;
 import javax.ws.rs.OPTIONS;
@@ -11,8 +12,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.List;
-
-import static java.net.HttpURLConnection.HTTP_OK;
 
 public abstract class Resource {
     final ObjectMapper objectMapper;
@@ -57,12 +56,27 @@ public abstract class Resource {
 
     abstract Query parseQuery(JsonNode json);
 
+    abstract IQueryResult formatResult(QueryResultSuccess result);
+
+    abstract IQueryResult formatException(QueryException exception, Query query);
+
     abstract int getStatus(IQueryResult result);
 
     abstract String getPayload(IQueryResult result);
 
     IQueryResult singleQuery(Query query) {
-        return queryProcessor.process(query);
+        try {
+            query.validate();
+            if (query.isWildcardQuery()) {
+                List<QueryResultSuccess> results = queryProcessor.processWildcardQuery(query);
+                return new QueryResultList(Lists.transform(results, this::formatResult));
+            } else {
+                QueryResultSuccess result = queryProcessor.processSingleQuery(query);
+                return formatResult(result);
+            }
+        } catch (QueryException exception) {
+            return formatException(exception, query);
+        }
     }
 
     IQueryResult batchQuery(List<Query> queries) {

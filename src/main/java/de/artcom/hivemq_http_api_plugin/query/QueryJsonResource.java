@@ -2,6 +2,7 @@ package de.artcom.hivemq_http_api_plugin.query;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Inject;
+import de.artcom.hivemq_http_api_plugin.query.exceptions.QueryException;
 
 import javax.ws.rs.Path;
 import java.io.IOException;
@@ -25,6 +26,16 @@ public class QueryJsonResource extends Resource {
         } catch (NullPointerException ignored) {
             throw new IllegalArgumentException();
         }
+    }
+
+    @Override
+    IQueryResult formatResult(QueryResultSuccess result) {
+        return result;
+    }
+
+    @Override
+    IQueryResult formatException(QueryException exception, Query query) {
+        return QueryResultError.notFound(query.topic);
     }
 
     @Override
