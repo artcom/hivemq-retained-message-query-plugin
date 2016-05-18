@@ -27,7 +27,7 @@ class QueryProcessor {
         RetainedTopicTree.Node node = retainedTopicTree.getTopic(query.topic);
 
         if (node == null) {
-            throw new TopicNotFoundException();
+            throw new TopicNotFoundException(query.topic);
         }
 
         return createResult(node, query.topic, query.depth);

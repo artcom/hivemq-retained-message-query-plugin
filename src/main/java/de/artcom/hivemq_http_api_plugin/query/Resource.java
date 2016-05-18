@@ -3,6 +3,7 @@ package de.artcom.hivemq_http_api_plugin.query;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.Lists;
@@ -103,9 +104,20 @@ abstract class Resource {
     }
 
     JsonNode createErrorObject(int status, String message) {
-        ObjectNode error = objectMapper.getNodeFactory().objectNode();
-        error.set("error", objectMapper.getNodeFactory().numberNode(status));
-        error.set("message", objectMapper.getNodeFactory().textNode(message));
+        return createErrorObject(status, message, null);
+    }
+
+    JsonNode createErrorObject(int status, String message, String topic) {
+        JsonNodeFactory nodeFactory = objectMapper.getNodeFactory();
+
+        ObjectNode error = nodeFactory.objectNode();
+        error.set("error", nodeFactory.numberNode(status));
+        error.set("message", nodeFactory.textNode(message));
+
+        if (topic != null) {
+            error.set("topic", nodeFactory.textNode(topic));
+        }
+
         return error;
     }
 

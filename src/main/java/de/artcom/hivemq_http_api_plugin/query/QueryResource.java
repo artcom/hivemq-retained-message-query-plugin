@@ -67,7 +67,7 @@ public class QueryResource extends Resource {
             return createErrorObject(HTTP_BAD_REQUEST, "The request body must be a JSON object with a 'topic'" +
                     " and optional 'depth' property, or a JSON array of such objects.");
         } else if(exception instanceof TopicNotFoundException) {
-            return createErrorObject(HTTP_NOT_FOUND, "The topic does not exist.");
+            return createErrorObject(HTTP_NOT_FOUND, "The topic does not exist.", exception.topic);
         }
 
         return createErrorObject(HTTP_INTERNAL_ERROR, "Internal error");
