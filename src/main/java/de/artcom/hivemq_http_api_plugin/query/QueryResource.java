@@ -61,16 +61,19 @@ public class QueryResource extends Resource {
             return QueryResponse.error(
                     HTTP_BAD_REQUEST,
                     "The topic cannot start with a slash.",
+                    exception.topic,
                     objectMapper);
         } else if (exception instanceof TrailingSlashException) {
             return QueryResponse.error(
                     HTTP_BAD_REQUEST,
                     "The topic cannot end with a slash.",
+                    exception.topic,
                     objectMapper);
         } else if (exception instanceof MultipleWildcardsException) {
             return QueryResponse.error(
                     HTTP_BAD_REQUEST,
                     "The topic cannot contain more than one wildcard.",
+                    exception.topic,
                     objectMapper);
         } else if (exception instanceof ParameterException) {
             return QueryResponse.error(

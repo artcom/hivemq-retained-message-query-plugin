@@ -16,15 +16,15 @@ class Query {
 
     void validate() throws LeadingSlashException, TrailingSlashException, MultipleWildcardsException {
         if (topic.startsWith("/")) {
-            throw new LeadingSlashException();
+            throw new LeadingSlashException(topic);
         }
 
         if (topic.endsWith("/")) {
-            throw new TrailingSlashException();
+            throw new TrailingSlashException(topic);
         }
 
         if (StringUtils.countMatches(topic, '+') > 1) {
-            throw new MultipleWildcardsException();
+            throw new MultipleWildcardsException(topic);
         }
     }
 }
