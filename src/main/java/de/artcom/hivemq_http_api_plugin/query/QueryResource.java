@@ -51,25 +51,44 @@ public class QueryResource extends Resource {
     }
 
     @Override
-    JsonNode formatResult(QueryResult result) {
-        return objectMapper.valueToTree(result);
+    QueryResponse formatResult(QueryResult result) {
+        return QueryResponse.success(objectMapper.valueToTree(result));
     }
 
     @Override
-    JsonNode formatException(QueryException exception) {
+    QueryResponse formatException(QueryException exception) {
         if (exception instanceof LeadingSlashException) {
-            return createErrorObject(HTTP_BAD_REQUEST, "The topic cannot start with a slash.");
+            return QueryResponse.error(
+                    HTTP_BAD_REQUEST,
+                    "The topic cannot start with a slash.",
+                    objectMapper);
         } else if (exception instanceof TrailingSlashException) {
-            return createErrorObject(HTTP_BAD_REQUEST, "The topic cannot end with a slash.");
+            return QueryResponse.error(
+                    HTTP_BAD_REQUEST,
+                    "The topic cannot end with a slash.",
+                    objectMapper);
         } else if (exception instanceof MultipleWildcardsException) {
-            return createErrorObject(HTTP_BAD_REQUEST, "The topic cannot contain more than one wildcard.");
+            return QueryResponse.error(
+                    HTTP_BAD_REQUEST,
+                    "The topic cannot contain more than one wildcard.",
+                    objectMapper);
         } else if (exception instanceof ParameterException) {
-            return createErrorObject(HTTP_BAD_REQUEST, "The request body must be a JSON object with a 'topic'" +
-                    " and optional 'depth' property, or a JSON array of such objects.");
+            return QueryResponse.error(
+                    HTTP_BAD_REQUEST,
+                    "The request body must be a JSON object with a 'topic' " +
+                    "and optional 'depth' property, or a JSON array of such objects.",
+                    objectMapper);
         } else if(exception instanceof TopicNotFoundException) {
-            return createErrorObject(HTTP_NOT_FOUND, "The topic does not exist.", exception.topic);
+            return QueryResponse.error(
+                    HTTP_NOT_FOUND,
+                    "The topic does not exist.",
+                    exception.topic,
+                    objectMapper);
         }
 
-        return createErrorObject(HTTP_INTERNAL_ERROR, "Internal error");
+        return QueryResponse.error(
+                HTTP_INTERNAL_ERROR,
+                "Internal error",
+                objectMapper);
     }
 }

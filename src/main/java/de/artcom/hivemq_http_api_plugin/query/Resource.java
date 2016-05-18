@@ -3,8 +3,6 @@ package de.artcom.hivemq_http_api_plugin.query;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.Lists;
 import de.artcom.hivemq_http_api_plugin.query.exceptions.ParameterException;
@@ -17,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
-import static java.net.HttpURLConnection.HTTP_OK;
 
 abstract class Resource {
     final ObjectMapper objectMapper;
@@ -40,16 +37,11 @@ abstract class Resource {
     }
 
     public Response post(String body) {
-        try {
-            JsonNode result = computeResult(body);
-            return createResponse(HTTP_OK, result);
-        } catch (IOException ignored) {
-            JsonNode errorObject = createErrorObject(HTTP_BAD_REQUEST, "The request body must be a JSON object");
-            return createResponse(HTTP_BAD_REQUEST, errorObject);
-        }
+        QueryResponse response = computeReponse(body);
+        return createResponse(response.status, response.body);
     }
 
-    private JsonNode computeResult(String body) throws IOException {
+    private QueryResponse computeReponse(String body) {
         try {
             JsonNode json = objectMapper.readTree(body);
 
@@ -69,26 +61,29 @@ abstract class Resource {
             throw new ParameterException();
         } catch (ParameterException exception) {
             return formatException(exception);
+        } catch (IOException ignored) {
+            return QueryResponse.error(HTTP_BAD_REQUEST, "The request body must be a JSON object", objectMapper);
         }
     }
 
     abstract Query parseQuery(JsonNode json) throws ParameterException;
 
-    abstract JsonNode formatResult(QueryResult result);
+    abstract QueryResponse formatResult(QueryResult result);
 
-    abstract JsonNode formatException(QueryException exception);
+    abstract QueryResponse formatException(QueryException exception);
 
-    private JsonNode singleQuery(Query query) {
+    private QueryResponse singleQuery(Query query) {
         try {
             query.validate();
             if (query.isWildcardQuery()) {
                 ArrayNode array = objectMapper.getNodeFactory().arrayNode();
 
                 for (QueryResult result : queryProcessor.processWildcardQuery(query)) {
-                    array.add(formatResult(result));
+                    QueryResponse queryResponse = formatResult(result);
+                    array.add(queryResponse.body);
                 }
 
-                return array;
+                return QueryResponse.success(array);
             } else {
                 QueryResult result = queryProcessor.processSingleQuery(query);
                 return formatResult(result);
@@ -98,27 +93,15 @@ abstract class Resource {
         }
     }
 
-    private JsonNode batchQuery(List<Query> queries) {
-        List<JsonNode> results = Lists.transform(queries, this::singleQuery);
-        return objectMapper.getNodeFactory().arrayNode().addAll(results);
-    }
+    private QueryResponse batchQuery(List<Query> queries) {
+        List<QueryResponse> responses = Lists.transform(queries, this::singleQuery);
+        ArrayNode array = objectMapper.getNodeFactory().arrayNode();
 
-    JsonNode createErrorObject(int status, String message) {
-        return createErrorObject(status, message, null);
-    }
-
-    JsonNode createErrorObject(int status, String message, String topic) {
-        JsonNodeFactory nodeFactory = objectMapper.getNodeFactory();
-
-        ObjectNode error = nodeFactory.objectNode();
-        error.set("error", nodeFactory.numberNode(status));
-        error.set("message", nodeFactory.textNode(message));
-
-        if (topic != null) {
-            error.set("topic", nodeFactory.textNode(topic));
+        for (QueryResponse response : responses) {
+            array.add(response.body);
         }
 
-        return error;
+        return QueryResponse.success(array);
     }
 
     private static Response createResponse(int status, JsonNode body) {

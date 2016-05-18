@@ -42,7 +42,7 @@ public class QueryJsonResource extends Resource {
     }
 
     @Override
-    JsonNode formatResult(QueryResult result) {
+    QueryResponse formatResult(QueryResult result) {
         ObjectNode object = objectMapper.getNodeFactory().objectNode();
         List<QueryResult> children = result.getChildren();
 
@@ -50,7 +50,7 @@ public class QueryJsonResource extends Resource {
             children.forEach((child) -> addResultToObject(child, object));
         }
 
-        return object;
+        return QueryResponse.success(object);
     }
 
     private void addResultToObject(QueryResult child, ObjectNode object) {
@@ -76,7 +76,7 @@ public class QueryJsonResource extends Resource {
     }
 
     @Override
-    JsonNode formatException(QueryException exception) {
-        return objectMapper.getNodeFactory().objectNode();
+    QueryResponse formatException(QueryException exception) {
+        return QueryResponse.success(objectMapper.getNodeFactory().objectNode());
     }
 }
