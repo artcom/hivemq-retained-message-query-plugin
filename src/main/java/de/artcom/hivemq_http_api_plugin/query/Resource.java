@@ -2,7 +2,6 @@ package de.artcom.hivemq_http_api_plugin.query;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.Lists;
 import de.artcom.hivemq_http_api_plugin.query.exceptions.ParameterException;
@@ -11,7 +10,6 @@ import de.artcom.hivemq_http_api_plugin.query.exceptions.QueryException;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
@@ -45,45 +43,32 @@ abstract class Resource {
         try {
             JsonNode json = objectMapper.readTree(body);
 
-            if (json.isObject()) {
-                Query query = parseQuery(json);
-                return singleQuery(query);
-            } else if (json.isArray()) {
-                List<Query> queries = new ArrayList<>();
-
-                for (JsonNode queryJson : json) {
-                    queries.add(parseQuery(queryJson));
-                }
-
-                return batchQuery(queries);
+            if (json.isArray()) {
+                return processBatchQuery(Lists.newArrayList(json.elements()));
+            } else if (json.isObject()) {
+                return processSingleQuery(json);
             }
 
-            throw new ParameterException();
-        } catch (ParameterException exception) {
-            return formatException(exception);
+            return formatException(new ParameterException());
         } catch (IOException ignored) {
             return QueryResponse.error(HTTP_BAD_REQUEST, "The request body must be a JSON object", objectMapper);
         }
     }
 
-    abstract Query parseQuery(JsonNode json) throws ParameterException;
+    private QueryResponse processBatchQuery(List<JsonNode> queryJsons) {
+        List<JsonNode> responseBodies = Lists.transform(queryJsons, (queryJson) -> processSingleQuery(queryJson).body);
+        return QueryResponse.success(responseBodies, objectMapper);
+    }
 
-    abstract QueryResponse formatResult(QueryResult result, Query query);
-
-    abstract QueryResponse formatException(QueryException exception);
-
-    private QueryResponse singleQuery(Query query) {
+    private QueryResponse processSingleQuery(JsonNode queryJson) {
         try {
+            Query query = parseQuery(queryJson);
             query.validate();
+
             if (query.isWildcardQuery()) {
-                ArrayNode array = objectMapper.getNodeFactory().arrayNode();
-
-                for (QueryResult result : queryProcessor.processWildcardQuery(query)) {
-                    QueryResponse queryResponse = formatResult(result, query);
-                    array.add(queryResponse.body);
-                }
-
-                return QueryResponse.success(array);
+                List<QueryResult> results = queryProcessor.processWildcardQuery(query);
+                List<JsonNode> responseBodies = Lists.transform(results, (result) -> formatResult(result, query).body);
+                return QueryResponse.success(responseBodies, objectMapper);
             } else {
                 QueryResult result = queryProcessor.processSingleQuery(query);
                 return formatResult(result, query);
@@ -91,17 +76,6 @@ abstract class Resource {
         } catch (QueryException exception) {
             return formatException(exception);
         }
-    }
-
-    private QueryResponse batchQuery(List<Query> queries) {
-        List<QueryResponse> responses = Lists.transform(queries, this::singleQuery);
-        ArrayNode array = objectMapper.getNodeFactory().arrayNode();
-
-        for (QueryResponse response : responses) {
-            array.add(response.body);
-        }
-
-        return QueryResponse.success(array);
     }
 
     private static Response createResponse(int status, JsonNode body) {
@@ -114,4 +88,10 @@ abstract class Resource {
                 .header("Access-Control-Allow-Methods", "POST")
                 .build();
     }
+
+    abstract Query parseQuery(JsonNode json) throws ParameterException;
+
+    abstract QueryResponse formatResult(QueryResult result, Query query);
+
+    abstract QueryResponse formatException(QueryException exception);
 }
