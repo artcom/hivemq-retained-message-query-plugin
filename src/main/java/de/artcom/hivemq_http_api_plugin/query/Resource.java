@@ -1,5 +1,6 @@
 package de.artcom.hivemq_http_api_plugin.query;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
@@ -103,21 +104,10 @@ public class Resource {
         }
     }
 
-    private static Query parseQuery(JsonNode json) throws ParameterException {
+    private Query parseQuery(JsonNode json) throws ParameterException {
         try {
-            Query query = new Query();
-            query.topic = json.get("topic").textValue();
-
-            if (json.has("depth")) {
-                query.depth = json.get("depth").asInt();
-            }
-
-            if (json.has("flatten")) {
-                query.flatten = json.get("flatten").asBoolean();
-            }
-
-            return query;
-        } catch (NullPointerException ignored) {
+            return objectMapper.treeToValue(json, Query.class);
+        } catch (JsonProcessingException e) {
             throw new ParameterException();
         }
     }
