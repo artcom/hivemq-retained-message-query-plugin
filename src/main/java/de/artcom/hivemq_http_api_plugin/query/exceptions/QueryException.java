@@ -1,7 +1,7 @@
 package de.artcom.hivemq_http_api_plugin.query.exceptions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.artcom.hivemq_http_api_plugin.query.QueryResponse;
+import de.artcom.hivemq_http_api_plugin.query.Response;
 
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 
@@ -16,7 +16,7 @@ public class QueryException extends Exception {
         this.topic = topic;
     }
 
-    public QueryResponse toQueryResponse(ObjectMapper objectMapper) {
-        return QueryResponse.error(HTTP_INTERNAL_ERROR, "Internal error", objectMapper);
+    public Response toQueryResponse(ObjectMapper objectMapper) {
+        return Response.error(HTTP_INTERNAL_ERROR, "Internal error", objectMapper);
     }
 }

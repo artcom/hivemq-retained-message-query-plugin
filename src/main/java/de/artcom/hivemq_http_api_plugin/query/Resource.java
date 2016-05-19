@@ -12,28 +12,27 @@ import javax.inject.Inject;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.List;
 
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 
 @Path("/query")
-public class QueryResource {
+public class Resource {
     private final ObjectMapper objectMapper;
-    private final QueryProcessor queryProcessor;
+    private final Processor processor;
 
     @Inject
-    QueryResource(QueryProcessor queryProcessor) {
+    Resource(Processor processor) {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new GuavaModule());
 
-        this.queryProcessor = queryProcessor;
+        this.processor = processor;
     }
 
     @OPTIONS
-    public static Response options() {
-        return Response.ok("")
+    public static javax.ws.rs.core.Response options() {
+        return javax.ws.rs.core.Response.ok("")
                 .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Headers", "origin, content-type, accept, authorization")
                 .header("Access-Control-Allow-Methods", "POST")
@@ -41,10 +40,10 @@ public class QueryResource {
     }
 
     @POST
-    public Response post(String body) {
-        QueryResponse response = computeReponse(body);
+    public javax.ws.rs.core.Response post(String body) {
+        Response response = computeReponse(body);
 
-        return Response
+        return javax.ws.rs.core.Response
                 .status(response.status)
                 .entity(response.body)
                 .header("Content-Type", "application/json; charset=utf-8")
@@ -54,7 +53,7 @@ public class QueryResource {
                 .build();
     }
 
-    private QueryResponse computeReponse(String body) {
+    private Response computeReponse(String body) {
         try {
             JsonNode json = objectMapper.readTree(body);
 
@@ -66,32 +65,32 @@ public class QueryResource {
 
             return formatException(new ParameterException());
         } catch (IOException ignored) {
-            return QueryResponse.error(HTTP_BAD_REQUEST, "The request body must be a JSON object", objectMapper);
+            return Response.error(HTTP_BAD_REQUEST, "The request body must be a JSON object", objectMapper);
         }
     }
 
-    private QueryResponse processBatchQuery(List<JsonNode> queryJsons) {
+    private Response processBatchQuery(List<JsonNode> queryJsons) {
         List<JsonNode> responseBodies = Lists.transform(queryJsons, (queryJson) -> processSingleQuery(queryJson).body);
-        return QueryResponse.success(responseBodies, objectMapper);
+        return Response.success(responseBodies, objectMapper);
     }
 
-    private QueryResponse processSingleQuery(JsonNode queryJson) {
+    private Response processSingleQuery(JsonNode queryJson) {
         try {
             Query query = parseQuery(queryJson);
             query.validate();
 
             if (query.isWildcardQuery()) {
-                List<QueryResult> results = queryProcessor.processWildcardQuery(query);
+                List<Result> results = processor.processWildcardQuery(query);
 
                 if (query.flatten) {
-                    Iterable<QueryResult> flatResults = Iterables.concat(
-                            Iterables.transform(results, QueryResult::flatten));
+                    Iterable<Result> flatResults = Iterables.concat(
+                            Iterables.transform(results, Result::flatten));
                     return formatResults(Lists.newArrayList(flatResults));
                 } else {
                     return formatResults(results);
                 }
             } else {
-                QueryResult result = queryProcessor.processSingleQuery(query);
+                Result result = processor.processSingleQuery(query);
 
                 if (query.flatten) {
                     return formatResults(result.flatten());
@@ -123,16 +122,16 @@ public class QueryResource {
         }
     }
 
-    private QueryResponse formatResults(List<QueryResult> results) {
+    private Response formatResults(List<Result> results) {
         Iterable<JsonNode> responseBodies = Lists.transform(results, (result) -> formatResult(result).body);
-        return QueryResponse.success(responseBodies, objectMapper);
+        return Response.success(responseBodies, objectMapper);
     }
 
-    private QueryResponse formatResult(QueryResult result) {
-        return QueryResponse.success(objectMapper.valueToTree(result));
+    private Response formatResult(Result result) {
+        return Response.success(objectMapper.valueToTree(result));
     }
 
-    private QueryResponse formatException(QueryException exception) {
+    private Response formatException(QueryException exception) {
         return exception.toQueryResponse(objectMapper);
     }
 }

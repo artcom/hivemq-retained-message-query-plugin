@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-class QueryProcessor {
+class Processor {
     private static final Splitter WILDCARD_TOPIC_SPLITTER = Splitter
             .on('+')
             .trimResults(CharMatcher.is('/'));
@@ -19,11 +19,11 @@ class QueryProcessor {
     private final RetainedTopicTree retainedTopicTree;
 
     @Inject
-    public QueryProcessor(RetainedTopicTree retainedTopicTree) {
+    public Processor(RetainedTopicTree retainedTopicTree) {
         this.retainedTopicTree = retainedTopicTree;
     }
 
-    public QueryResult processSingleQuery(Query query) throws TopicNotFoundException {
+    public Result processSingleQuery(Query query) throws TopicNotFoundException {
         RetainedTopicTree.Node node = retainedTopicTree.getTopic(query.topic);
 
         if (node == null) {
@@ -33,13 +33,13 @@ class QueryProcessor {
         return createResult(node, query.topic, query.depth);
     }
 
-    public List<QueryResult> processWildcardQuery(Query query) {
+    public List<Result> processWildcardQuery(Query query) {
         List<String> parts = Lists.newArrayList(WILDCARD_TOPIC_SPLITTER.split(query.topic));
 
         String prefix = parts.get(0);
         String suffix = parts.get(1);
 
-        List<QueryResult> results = new ArrayList<>();
+        List<Result> results = new ArrayList<>();
         RetainedTopicTree.Node node = retainedTopicTree.getTopic(prefix);
 
         if (node != null) {
@@ -68,8 +68,8 @@ class QueryProcessor {
         return suffix.isEmpty() ? topic : topic + "/" + suffix;
     }
 
-    private static QueryResult createResult(RetainedTopicTree.Node node, String topic, int depth) {
-        List<QueryResult> children = null;
+    private static Result createResult(RetainedTopicTree.Node node, String topic, int depth) {
+        List<Result> children = null;
 
         if (depth != 0 && node.hasChildren()) {
             children = new ArrayList<>();
@@ -81,7 +81,7 @@ class QueryProcessor {
             }
         }
 
-        return new QueryResult(
+        return new Result(
                 topic,
                 node.payload,
                 children

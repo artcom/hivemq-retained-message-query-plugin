@@ -7,22 +7,22 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-class QueryResult {
+class Result {
     private final String topic;
     @Nullable
     private final String payload;
     @Nullable
-    private final List<QueryResult> children;
+    private final List<Result> children;
 
-    QueryResult(String topic, @Nullable String payload, @Nullable List<QueryResult> children) {
+    Result(String topic, @Nullable String payload, @Nullable List<Result> children) {
         this.topic = topic;
         this.payload = payload;
         this.children = children;
     }
 
-    public ImmutableList<QueryResult> flatten() {
-        ImmutableList.Builder<QueryResult> builder = ImmutableList.builder();
-        builder.add(new QueryResult(topic, payload, null));
+    public ImmutableList<Result> flatten() {
+        ImmutableList.Builder<Result> builder = ImmutableList.builder();
+        builder.add(new Result(topic, payload, null));
 
         if (children != null) {
             children.forEach((child) -> builder.addAll(child.flatten()));
@@ -41,7 +41,7 @@ class QueryResult {
     }
 
     @Nullable
-    public List<QueryResult> getChildren() {
+    public List<Result> getChildren() {
         return children;
     }
 }

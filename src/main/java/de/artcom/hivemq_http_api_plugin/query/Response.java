@@ -9,24 +9,24 @@ import com.google.common.collect.Lists;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 
-public class QueryResponse {
+public class Response {
     public final JsonNode body;
     public final int status;
 
-    public static QueryResponse success(Iterable<JsonNode> bodies, ObjectMapper objectMapper) {
+    public static Response success(Iterable<JsonNode> bodies, ObjectMapper objectMapper) {
         ArrayNode arrayNode = objectMapper.getNodeFactory().arrayNode().addAll(Lists.newArrayList(bodies));
         return success(arrayNode);
     }
 
-    public static QueryResponse success(JsonNode body) {
-        return new QueryResponse(body, HTTP_OK);
+    public static Response success(JsonNode body) {
+        return new Response(body, HTTP_OK);
     }
 
-    public static QueryResponse error(int status, String message, ObjectMapper objectMapper) {
+    public static Response error(int status, String message, ObjectMapper objectMapper) {
         return error(status, message, null, objectMapper);
     }
 
-    public static QueryResponse error(int status, String message, String topic, ObjectMapper objectMapper) {
+    public static Response error(int status, String message, String topic, ObjectMapper objectMapper) {
         JsonNodeFactory nodeFactory = objectMapper.getNodeFactory();
 
         ObjectNode error = nodeFactory.objectNode();
@@ -37,10 +37,10 @@ public class QueryResponse {
             error.set("topic", nodeFactory.textNode(topic));
         }
 
-        return new QueryResponse(error, status);
+        return new Response(error, status);
     }
 
-    private QueryResponse(JsonNode body, int status) {
+    private Response(JsonNode body, int status) {
         this.body = body;
         this.status = status;
     }
