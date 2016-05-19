@@ -84,8 +84,7 @@ public class Resource {
                 List<Result> results = processor.processWildcardQuery(query);
 
                 if (query.flatten) {
-                    Iterable<Result> flatResults = Iterables.concat(
-                            Iterables.transform(results, Result::flatten));
+                    Iterable<Result> flatResults = Iterables.concat(Iterables.transform(results, Result::flatten));
                     return formatResults(Lists.newArrayList(flatResults));
                 } else {
                     return formatResults(results);
