@@ -10,7 +10,7 @@ import java.util.List;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 
-class QueryResponse {
+public class QueryResponse {
     public final JsonNode body;
     public final int status;
 
