@@ -5,8 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import java.util.List;
+import com.google.common.collect.Lists;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 
@@ -14,8 +13,8 @@ public class QueryResponse {
     public final JsonNode body;
     public final int status;
 
-    public static QueryResponse success(List<JsonNode> bodies, ObjectMapper objectMapper) {
-        ArrayNode arrayNode = objectMapper.getNodeFactory().arrayNode().addAll(bodies);
+    public static QueryResponse success(Iterable<JsonNode> bodies, ObjectMapper objectMapper) {
+        ArrayNode arrayNode = objectMapper.getNodeFactory().arrayNode().addAll(Lists.newArrayList(bodies));
         return success(arrayNode);
     }
 
