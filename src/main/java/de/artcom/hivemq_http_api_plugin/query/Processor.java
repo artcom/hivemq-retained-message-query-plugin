@@ -4,7 +4,10 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import de.artcom.hivemq_http_api_plugin.RetainedTopicTree;
-import de.artcom.hivemq_http_api_plugin.query.exceptions.TopicNotFoundException;
+import de.artcom.hivemq_http_api_plugin.query.results.Result;
+import de.artcom.hivemq_http_api_plugin.query.results.ResultList;
+import de.artcom.hivemq_http_api_plugin.query.results.Topic;
+import de.artcom.hivemq_http_api_plugin.query.results.TopicNotFoundError;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -23,17 +26,25 @@ class Processor {
         this.retainedTopicTree = retainedTopicTree;
     }
 
-    public Result processSingleQuery(Query query) throws TopicNotFoundException {
+    Result processQuery(Query query) {
+        if (query.isWildcardQuery()) {
+            return processWildcardQuery(query);
+        } else {
+            return processSingleQuery(query);
+        }
+    }
+
+    private Result processSingleQuery(Query query) {
         RetainedTopicTree.Node node = retainedTopicTree.getTopic(query.topic);
 
         if (node == null) {
-            throw new TopicNotFoundException(query.topic);
+            return new TopicNotFoundError(query.topic);
         }
 
         return createResult(node, query.topic, query.depth);
     }
 
-    public List<Result> processWildcardQuery(Query query) {
+    private Result processWildcardQuery(Query query) {
         List<String> parts = Lists.newArrayList(WILDCARD_TOPIC_SPLITTER.split(query.topic));
 
         String prefix = parts.get(0);
@@ -56,7 +67,7 @@ class Processor {
             }
         }
 
-        return results;
+        return new ResultList(results);
     }
 
     private static String joinPath(String prefix, String childName) {
@@ -68,8 +79,8 @@ class Processor {
         return suffix.isEmpty() ? topic : topic + "/" + suffix;
     }
 
-    private static Result createResult(RetainedTopicTree.Node node, String topic, int depth) {
-        List<Result> children = null;
+    private static Topic createResult(RetainedTopicTree.Node node, String topic, int depth) {
+        List<Topic> children = null;
 
         if (depth != 0 && node.hasChildren()) {
             children = new ArrayList<>();
@@ -81,7 +92,7 @@ class Processor {
             }
         }
 
-        return new Result(
+        return new Topic(
                 topic,
                 node.payload,
                 children

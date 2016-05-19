@@ -3,11 +3,11 @@ package de.artcom.hivemq_http_api_plugin.query;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import de.artcom.hivemq_http_api_plugin.query.exceptions.ParameterException;
-import de.artcom.hivemq_http_api_plugin.query.exceptions.QueryException;
+import de.artcom.hivemq_http_api_plugin.query.results.Error;
+import de.artcom.hivemq_http_api_plugin.query.results.ParameterError;
+import de.artcom.hivemq_http_api_plugin.query.results.Result;
+import de.artcom.hivemq_http_api_plugin.query.results.ResultList;
 
 import javax.inject.Inject;
 import javax.ws.rs.OPTIONS;
@@ -16,7 +16,8 @@ import javax.ws.rs.Path;
 import java.io.IOException;
 import java.util.List;
 
-import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @Path("/query")
 public class Resource {
@@ -26,7 +27,11 @@ public class Resource {
     @Inject
     Resource(Processor processor) {
         objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new GuavaModule());
+        objectMapper.setVisibilityChecker(objectMapper.getSerializationConfig().getDefaultVisibilityChecker()
+                .withFieldVisibility(ANY)
+                .withGetterVisibility(NONE)
+                .withSetterVisibility(NONE)
+                .withCreatorVisibility(NONE));
 
         this.processor = processor;
     }
@@ -41,12 +46,12 @@ public class Resource {
     }
 
     @POST
-    public javax.ws.rs.core.Response post(String body) {
-        Response response = computeReponse(body);
+    public javax.ws.rs.core.Response post(String body) throws JsonProcessingException {
+        Result result = computeResult(body);
 
         return javax.ws.rs.core.Response
-                .status(response.status)
-                .entity(response.body)
+                .status(result.getStatus())
+                .entity(objectMapper.writeValueAsString(result))
                 .header("Content-Type", "application/json; charset=utf-8")
                 .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Headers", "origin, content-type, accept, authorization")
@@ -54,7 +59,7 @@ public class Resource {
                 .build();
     }
 
-    private Response computeReponse(String body) {
+    private Result computeResult(String body) {
         try {
             JsonNode json = objectMapper.readTree(body);
 
@@ -63,64 +68,34 @@ public class Resource {
             } else if (json.isObject()) {
                 return processSingleQuery(json);
             }
-
-            return formatException(new ParameterException());
         } catch (IOException ignored) {
-            return Response.error(HTTP_BAD_REQUEST, "The request body must be a JSON object", objectMapper);
         }
+
+        return new ParameterError();
     }
 
-    private Response processBatchQuery(List<JsonNode> queryJsons) {
-        List<JsonNode> responseBodies = Lists.transform(queryJsons, (queryJson) -> processSingleQuery(queryJson).body);
-        return Response.success(responseBodies, objectMapper);
+    private Result processBatchQuery(List<JsonNode> queryJsons) {
+        return new ResultList(Lists.transform(queryJsons, this::processSingleQuery));
     }
 
-    private Response processSingleQuery(JsonNode queryJson) {
+    private Result processSingleQuery(JsonNode queryJson) {
+        Query query;
         try {
-            Query query = parseQuery(queryJson);
-            query.validate();
-
-            if (query.isWildcardQuery()) {
-                List<Result> results = processor.processWildcardQuery(query);
-
-                if (query.flatten) {
-                    Iterable<Result> flatResults = Iterables.concat(Iterables.transform(results, Result::flatten));
-                    return formatResults(Lists.newArrayList(flatResults));
-                } else {
-                    return formatResults(results);
-                }
-            } else {
-                Result result = processor.processSingleQuery(query);
-
-                if (query.flatten) {
-                    return formatResults(result.flatten());
-                } else {
-                    return formatResult(result);
-                }
-            }
-        } catch (QueryException exception) {
-            return formatException(exception);
-        }
-    }
-
-    private Query parseQuery(JsonNode json) throws ParameterException {
-        try {
-            return objectMapper.treeToValue(json, Query.class);
+            query = objectMapper.treeToValue(queryJson, Query.class);
         } catch (JsonProcessingException e) {
-            throw new ParameterException();
+            return new ParameterError();
         }
-    }
 
-    private Response formatResults(List<Result> results) {
-        Iterable<JsonNode> responseBodies = Lists.transform(results, (result) -> formatResult(result).body);
-        return Response.success(responseBodies, objectMapper);
-    }
+        Error error = query.validate();
+        if (error != null) {
+            return error;
+        }
 
-    private Response formatResult(Result result) {
-        return Response.success(objectMapper.valueToTree(result));
-    }
-
-    private Response formatException(QueryException exception) {
-        return exception.toQueryResponse(objectMapper);
+        Result result = processor.processQuery(query);
+        if (query.flatten) {
+            return new ResultList(result.flatten());
+        } else {
+            return result;
+        }
     }
 }

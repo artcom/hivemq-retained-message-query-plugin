@@ -44,8 +44,7 @@ describe("Query API", function() {
         statusCode: 404
       }).and.have.property("body").that.deep.equals({
         topic: `${this.prefix}/does-not-exist`,
-        error: 404,
-        message: "The topic does not exist."
+        error: 404
       })
     })
 
@@ -60,8 +59,7 @@ describe("Query API", function() {
         statusCode: 404
       }).and.have.property("body").that.deep.equals({
         topic: `${this.prefix}/topic1`,
-        error: 404,
-        message: "The topic does not exist."
+        error: 404
       })
     })
 
@@ -95,8 +93,7 @@ describe("Query API", function() {
         statusCode: 404
       }).and.have.property("body").that.deep.equals({
         topic: `${this.prefix}/foo/bar`,
-        error: 404,
-        message: "The topic does not exist."
+        error: 404
       })
     })
 
@@ -233,8 +230,7 @@ describe("Query API", function() {
         },
         {
           topic: `${this.prefix}/does-not-exist`,
-          error: 404,
-          message: "The topic does not exist."
+          error: 404
         }
       ])
     })
