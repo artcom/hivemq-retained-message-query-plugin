@@ -118,15 +118,16 @@ describe("Query API", function() {
         ])
       })
 
-      it("should return array with error object for flattened query of non-existent topic", function() {
-        const query = postQuery({ topic: "does-not-exist", depth: 0, flatten: true })
-        return expect(query).to.eventually.deep.equal([
-          {
-            error: 404,
-            topic: "does-not-exist"
-          }
-        ])
-      })
+      it("should return array with error object for flattened query of non-existent topic",
+        function() {
+          const query = postQuery({ topic: "does-not-exist", depth: 0, flatten: true })
+          return expect(query).to.eventually.deep.equal([
+            {
+              error: 404,
+              topic: "does-not-exist"
+            }
+          ])
+        })
 
       it("should return the payload of immediate children", function() {
         const query = postQuery({ topic: this.prefix, depth: 1 })
