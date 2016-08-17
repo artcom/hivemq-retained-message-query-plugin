@@ -1,5 +1,5 @@
+const axios = require("axios")
 const chai = require("chai")
-const request = require("request-promise")
 
 chai.use(require("chai-as-promised"))
 const expect = chai.expect
@@ -7,13 +7,10 @@ const expect = chai.expect
 const config = require("./config")
 const hooks = require("./hooks")
 
-function postQuery(json, additionalOptions = {}) {
-  const options = Object.assign({ json }, additionalOptions)
-  return request.post(config.QUERY_URL, options)
-}
-
-function postErrorQuery(json) {
-  return postQuery(json, { simple: false, resolveWithFullResponse: true })
+function postQuery(json, expectedStatus = 200) {
+  return axios.post(config.QUERY_URL, json, {
+    validateStatus: (status) => status === expectedStatus
+  }).then((response) => response.data)
 }
 
 describe("Query API", function() {
@@ -37,28 +34,26 @@ describe("Query API", function() {
     })
 
     it("should return error for inexistent topic", function() {
-      const query = postErrorQuery({ topic: `${this.prefix}/does-not-exist` })
+      const error = 404
+      const query = postQuery({ topic: `${this.prefix}/does-not-exist` }, error)
 
-      return expect(query).to.eventually.include({
-        statusCode: 404
-      }).and.have.property("body").that.deep.equals({
+      return expect(query).to.eventually.deep.equal({
         topic: `${this.prefix}/does-not-exist`,
-        error: 404
+        error
       })
     })
 
     it("should return error for unpublished topic", function() {
+      const error = 404
       const query = this.publish({
         topic1: null
       }).then(() =>
-        postErrorQuery({ topic: `${this.prefix}/topic1` })
+        postQuery({ topic: `${this.prefix}/topic1` }, error)
       )
 
-      return expect(query).to.eventually.include({
-        statusCode: 404
-      }).and.have.property("body").that.deep.equals({
+      return expect(query).to.eventually.deep.equal({
         topic: `${this.prefix}/topic1`,
-        error: 404
+        error
       })
     })
 
@@ -80,19 +75,18 @@ describe("Query API", function() {
     })
 
     it("should return error for unpublished nested topic", function() {
+      const error = 404
       const query = this.publish({
         "foo/bar": "baz"
       }).then(() => this.publish({
         "foo/bar": null
       })).then(() =>
-        postErrorQuery({ topic: `${this.prefix}/foo/bar` })
+        postQuery({ topic: `${this.prefix}/foo/bar` }, error)
       )
 
-      return expect(query).to.eventually.include({
-        statusCode: 404
-      }).and.have.property("body").that.deep.equals({
+      return expect(query).to.eventually.deep.equal({
         topic: `${this.prefix}/foo/bar`,
-        error: 404
+        error
       })
     })
 
@@ -317,49 +311,45 @@ describe("Query API", function() {
 
   describe("Invalid Queries", function() {
     it("should return an error when topic is missing", function() {
-      const query = postErrorQuery({ invalid: "query" })
+      const error = 400
+      const query = postQuery({ invalid: "query" }, error)
 
-      return expect(query).to.eventually.include({
-        statusCode: 400
-      }).and.to.have.property("body").that.deep.equals({
-        error: 400,
+      return expect(query).to.eventually.deep.equal({
+        error,
         message: "The request body must be a JSON object with a 'topic' and optional 'depth'" +
           " property, or a JSON array of such objects."
       })
     })
 
     it("should return an error when topic has leading slash", function() {
-      const query = postErrorQuery({ topic: "/leading/slash" })
+      const error = 400
+      const query = postQuery({ topic: "/leading/slash" }, error)
 
-      return expect(query).to.eventually.include({
-        statusCode: 400
-      }).and.to.have.property("body").that.deep.equals({
+      return expect(query).to.eventually.deep.equal({
         topic: "/leading/slash",
-        error: 400,
+        error,
         message: "The topic cannot start with a slash."
       })
     })
 
     it("should return an error when topic has trailing slash", function() {
-      const query = postErrorQuery({ topic: "trailing/slash/" })
+      const error = 400
+      const query = postQuery({ topic: "trailing/slash/" }, error)
 
-      return expect(query).to.eventually.include({
-        statusCode: 400
-      }).and.to.have.property("body").that.deep.equals({
+      return expect(query).to.eventually.deep.equal({
         topic: "trailing/slash/",
-        error: 400,
+        error,
         message: "The topic cannot end with a slash."
       })
     })
 
     it("should return an error when using multiple wildcards", function() {
-      const query = postErrorQuery({ topic: "using/+/multiple/+/wildcards" })
+      const error = 400
+      const query = postQuery({ topic: "using/+/multiple/+/wildcards" }, error)
 
-      return expect(query).to.eventually.include({
-        statusCode: 400
-      }).and.to.have.property("body").that.deep.equals({
+      return expect(query).to.eventually.deep.equal({
         topic: "using/+/multiple/+/wildcards",
-        error: 400,
+        error,
         message: "The topic cannot contain more than one wildcard."
       })
     })

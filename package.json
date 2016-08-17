@@ -9,12 +9,12 @@
   },
   "author": "ART+COM AG",
   "dependencies": {
+    "axios": "^0.13.1",
     "bluebird": "^2.9.30",
     "chai": "^3.0.0",
     "chai-as-promised": "^5.1.0",
     "mocha": "^2.2.5",
-    "mqtt": "^1.3.0",
-    "request-promise": "^0.4.2"
+    "mqtt": "^1.3.0"
   },
   "devDependencies": {
     "eslint": "^2.10.2",
