@@ -1,4 +1,3 @@
-const _ = require("lodash")
 const mqtt = require("mqtt")
 const Promise = require("bluebird")
 
@@ -16,10 +15,12 @@ function publishTestData(testData) {
     this.publishedTopics = new Set()
 
     this.publish = (data) => {
-      Object.keys(data).forEach((topic) => this.publishedTopics.add(`${this.prefix}/${topic}`))
+      const topics = Object.keys(data)
 
-      return Promise.all(_.map(data, (payload, topic) =>
-        this.client.publishAsync(`${this.prefix}/${topic}`, payload, { retain: true, qos: 2 })
+      topics.forEach((topic) => this.publishedTopics.add(`${this.prefix}/${topic}`))
+
+      return Promise.all(topics.map((topic) =>
+        this.client.publishAsync(`${this.prefix}/${topic}`, data[topic], { retain: true, qos: 2 })
       ))
     }
 

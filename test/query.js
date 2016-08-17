@@ -1,6 +1,5 @@
 const chai = require("chai")
 const request = require("request-promise")
-const _ = require("lodash")
 
 chai.use(require("chai-as-promised"))
 const expect = chai.expect
@@ -9,7 +8,7 @@ const config = require("./config")
 const hooks = require("./hooks")
 
 function postQuery(json, additionalOptions = {}) {
-  const options = _.assign({ json }, additionalOptions)
+  const options = Object.assign({ json }, additionalOptions)
   return request.post(config.QUERY_URL, options)
 }
 
