@@ -28,7 +28,7 @@ function publishTestData(testData) {
 }
 
 function unpublishTestData() {
-  return Promise.all(_.map(this.publishedTopics, (topic) =>
+  return Promise.all(Array.from(this.publishedTopics).map((topic) =>
     this.client.publishAsync(topic, null, { retain: true, qos: 2 })
   ))
 }
