@@ -129,7 +129,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
         }
 
         private Node getPath(ImmutableList<String> path) {
-            if (path.isEmpty() || path.get(0).isEmpty()) {
+            if (path.isEmpty()) {
                 return this;
             }
 
@@ -218,7 +218,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
                 return ImmutableList.of();
             }
 
-            return ImmutableList.copyOf(topic.split("/"));
+            return ImmutableList.copyOf(topic.split("/", -1));
         }
 
         private static String fromPath(ImmutableList<String> path) {

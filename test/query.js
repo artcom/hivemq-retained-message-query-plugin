@@ -33,6 +33,19 @@ describe("Query API", function() {
       })
     })
 
+    it("should return the payload of a topic with trailing slash", function() {
+      const query = this.publish({
+        "topic3/": "baz"
+      }).then(() =>
+        postQuery({ topic: `${this.prefix}/topic3/` })
+      )
+
+      return expect(query).to.eventually.deep.equal({
+        topic: `${this.prefix}/topic3/`,
+        payload: "baz"
+      })
+    })
+
     it("should return error for inexistent topic", function() {
       const error = 404
       const query = postQuery({ topic: `${this.prefix}/does-not-exist` }, error)
@@ -138,6 +151,53 @@ describe("Query API", function() {
         return expect(query).to.eventually.deep.equal({
           topic: this.prefix,
           children: [
+            {
+              topic: `${this.prefix}/topic1`,
+              payload: "foo"
+            },
+            {
+              topic: `${this.prefix}/topic2`,
+              payload: "bar",
+              children: [
+                {
+                  topic: `${this.prefix}/topic2/deepTopic`,
+                  payload: "baz"
+                }
+              ]
+            }
+          ]
+        })
+      })
+
+      it("should support empty string subtopics", function() {
+        const query = this.publish({
+          "/foo1": "bar1",
+          "foo2/": "bar2"
+        }).then(() =>
+          postQuery({ topic: this.prefix, depth: -1 })
+        )
+
+        return expect(query).to.eventually.deep.equal({
+          topic: this.prefix,
+          children: [
+            {
+              topic: `${this.prefix}/`,
+              children: [
+                {
+                  topic: `${this.prefix}//foo1`,
+                  payload: "bar1"
+                }
+              ]
+            },
+            {
+              topic: `${this.prefix}/foo2`,
+              children: [
+                {
+                  topic: `${this.prefix}/foo2/`,
+                  payload: "bar2"
+                }
+              ]
+            },
             {
               topic: `${this.prefix}/topic1`,
               payload: "foo"
@@ -331,17 +391,6 @@ describe("Query API", function() {
         topic: "/leading/slash",
         error,
         message: "The topic cannot start with a slash."
-      })
-    })
-
-    it("should return an error when topic has trailing slash", function() {
-      const error = 400
-      const query = postQuery({ topic: "trailing/slash/" }, error)
-
-      return expect(query).to.eventually.deep.equal({
-        topic: "trailing/slash/",
-        error,
-        message: "The topic cannot end with a slash."
       })
     })
   })
