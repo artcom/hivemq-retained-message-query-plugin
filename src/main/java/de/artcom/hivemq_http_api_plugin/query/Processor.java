@@ -9,7 +9,6 @@ import de.artcom.hivemq_http_api_plugin.query.results.TopicNotFoundError;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 class Processor {
     private final RetainedTopicTree retainedTopicTree;
@@ -38,9 +37,9 @@ class Processor {
     }
 
     private Result processWildcardQuery(Query query) {
-        Stream<RetainedTopicTree.Node> nodes = retainedTopicTree.getWildcardTopics(query.topic);
-        Stream<Result> results = nodes.map(node -> createResult(node, query.depth));
-        return new ResultList(results.collect(Collectors.toList()));
+        return retainedTopicTree.getWildcardTopics(query.topic)
+                .map(node -> createResult(node, query.depth))
+                .collect(Collectors.toCollection(ResultList::new));
     }
 
     private static Topic createResult(RetainedTopicTree.Node node, int depth) {

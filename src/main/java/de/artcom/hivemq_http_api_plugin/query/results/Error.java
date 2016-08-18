@@ -1,7 +1,6 @@
 package de.artcom.hivemq_http_api_plugin.query.results;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.ImmutableList;
+import java.util.stream.Stream;
 
 public class Error implements Result {
     private final int error;
@@ -15,7 +14,7 @@ public class Error implements Result {
         return error;
     }
 
-    public ImmutableList<Result> flatten() {
-        return ImmutableList.of(this);
+    public Stream<Result> flatten() {
+        return Stream.of(this);
     }
 }

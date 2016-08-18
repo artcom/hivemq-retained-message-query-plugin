@@ -15,6 +15,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -75,7 +76,9 @@ public class Resource {
     }
 
     private Result processBatchQuery(List<JsonNode> queryJsons) {
-        return new ResultList(Lists.transform(queryJsons, this::processSingleQuery));
+        return queryJsons.stream()
+                .map(this::processSingleQuery)
+                .collect(Collectors.toCollection(ResultList::new));
     }
 
     private Result processSingleQuery(JsonNode queryJson) {
@@ -93,7 +96,7 @@ public class Resource {
 
         Result result = processor.processQuery(query);
         if (query.flatten) {
-            return new ResultList(result.flatten());
+            return result.flatten().collect(Collectors.toCollection(ResultList::new));
         } else {
             return result;
         }

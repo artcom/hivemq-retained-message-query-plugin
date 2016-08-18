@@ -1,10 +1,10 @@
 package de.artcom.hivemq_http_api_plugin.query.results;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 
@@ -27,15 +27,12 @@ public class Topic implements Result {
         return HTTP_OK;
     }
 
-    public ImmutableList<Result> flatten() {
-        ImmutableList.Builder<Result> builder = ImmutableList.builder();
-        builder.add(new Topic(topic, payload, null));
+    public Stream<Result> flatten() {
+        Stream<Topic> childrenStream = children == null ? Stream.empty() : children.stream();
 
-        if (children != null) {
-            children.forEach((child) -> builder.addAll(child.flatten()));
-        }
-
-        return builder.build();
+        return Stream.concat(
+                Stream.of(new Topic(topic, payload, null)),
+                childrenStream.flatMap(Topic::flatten));
     }
 
     public String getTopic() {
