@@ -2,9 +2,7 @@ package de.artcom.hivemq_http_api_plugin.query;
 
 import de.artcom.hivemq_http_api_plugin.query.results.Error;
 import de.artcom.hivemq_http_api_plugin.query.results.LeadingSlashError;
-import de.artcom.hivemq_http_api_plugin.query.results.MultipleWildcardsError;
 import de.artcom.hivemq_http_api_plugin.query.results.TrailingSlashError;
-import org.apache.commons.lang3.StringUtils;
 
 class Query {
     public String topic;
@@ -22,10 +20,6 @@ class Query {
 
         if (topic.endsWith("/")) {
             return new TrailingSlashError(topic);
-        }
-
-        if (StringUtils.countMatches(topic, '+') > 1) {
-            return new MultipleWildcardsError(topic);
         }
 
         return null;

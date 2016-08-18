@@ -342,17 +342,6 @@ describe("Query API", function() {
         message: "The topic cannot end with a slash."
       })
     })
-
-    it("should return an error when using multiple wildcards", function() {
-      const error = 400
-      const query = postQuery({ topic: "using/+/multiple/+/wildcards" }, error)
-
-      return expect(query).to.eventually.deep.equal({
-        topic: "using/+/multiple/+/wildcards",
-        error,
-        message: "The topic cannot contain more than one wildcard."
-      })
-    })
   })
 
   describe("Wildcard Queries", function() {
@@ -435,6 +424,20 @@ describe("Query API", function() {
       const query = postQuery({ topic: `+/${this.topic}` })
       return expect(query).to.eventually.deep.equal([
         { topic: this.prefix }
+      ])
+    })
+
+    it("should support multiple wildcards", function() {
+      const query = this.publish({
+        "topic2/otherChild": "three"
+      }).then(() =>
+        postQuery({ topic: `${this.prefix}/+/+` })
+      )
+
+      return expect(query).to.eventually.deep.equal([
+        { topic: `${this.prefix}/topic1/child`, payload: "one" },
+        { topic: `${this.prefix}/topic2/child`, payload: "two" },
+        { topic: `${this.prefix}/topic2/otherChild`, payload: "three" }
       ])
     })
 
