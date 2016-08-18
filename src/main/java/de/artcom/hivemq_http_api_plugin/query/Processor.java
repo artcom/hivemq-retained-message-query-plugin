@@ -1,8 +1,5 @@
 package de.artcom.hivemq_http_api_plugin.query;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import de.artcom.hivemq_http_api_plugin.RetainedTopicTree;
 import de.artcom.hivemq_http_api_plugin.query.results.Result;
 import de.artcom.hivemq_http_api_plugin.query.results.ResultList;
@@ -14,10 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 class Processor {
-    private static final Splitter WILDCARD_TOPIC_SPLITTER = Splitter
-            .on('+')
-            .trimResults(CharMatcher.is('/'));
-
     private final RetainedTopicTree retainedTopicTree;
 
     @Inject
@@ -44,22 +37,11 @@ class Processor {
     }
 
     private Result processWildcardQuery(Query query) {
-        List<String> parts = Lists.newArrayList(WILDCARD_TOPIC_SPLITTER.split(query.topic));
-
-        String prefix = parts.get(0);
-        String suffix = parts.get(1);
-
+        List<RetainedTopicTree.Node> nodes = retainedTopicTree.getWildcardTopics(query.topic);
         List<Result> results = new ArrayList<>();
-        RetainedTopicTree.Node node = retainedTopicTree.getTopic(prefix);
 
-        if (node != null) {
-            for (RetainedTopicTree.Node child : node.getChildren().values()) {
-                RetainedTopicTree.Node match = retainedTopicTree.getTopic(suffix, child);
-
-                if (match != null) {
-                    results.add(createResult(match, query.depth));
-                }
-            }
+        for (RetainedTopicTree.Node node : nodes) {
+            results.add(createResult(node, query.depth));
         }
 
         return new ResultList(results);

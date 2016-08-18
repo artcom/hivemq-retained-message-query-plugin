@@ -437,5 +437,14 @@ describe("Query API", function() {
         { topic: this.prefix }
       ])
     })
+
+    it("should support empty string subtopics", function() {
+      const query = this.publish({ "topic3//foo": "true" })
+        .then(() => postQuery({ topic: `${this.prefix}/+//foo`, depth: 1 }))
+
+      return expect(query).to.eventually.deep.equal([
+        { topic: `${this.prefix}/topic3//foo`, payload: "true" }
+      ])
+    })
   })
 })

@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -35,14 +36,20 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
     }
 
     public Node getTopic(String topic) {
-        return getTopic(topic, root);
-    }
-
-    public Node getTopic(String topic, Node parent) {
         lock.readLock().lock();
 
         try {
-            return parent.getTopic(topic);
+            return root.getTopic(topic);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    public List<Node> getWildcardTopics(String topic) {
+        lock.readLock().lock();
+
+        try {
+            return root.getWildcardTopics(topic);
         } finally {
             lock.readLock().unlock();
         }
@@ -135,6 +142,37 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             }
 
             return child.getPath(path.subList(1, path.size()));
+        }
+
+        private List<Node> getWildcardTopics(String topic) {
+            return getWildcardPathes(toPath(topic));
+        }
+
+        private List<Node> getWildcardPathes(ImmutableList<String> path) {
+            if (path.isEmpty()) {
+                return ImmutableList.of(this);
+            }
+
+            String name = path.get(0);
+
+            if ("+".equals(name)) {
+                ImmutableList.Builder<Node> builder = ImmutableList.<Node>builder();
+
+                for (Node child : children.values()) {
+                    List<Node> matches = child.getWildcardPathes(path.subList(1, path.size()));
+                    builder.addAll(matches);
+                }
+
+                return builder.build();
+            } else {
+                Node child = children.get(name);
+
+                if (child == null) {
+                    return ImmutableList.of();
+                }
+
+                return child.getWildcardPathes(path.subList(1, path.size()));
+            }
         }
 
         private Node createTopic(String topic) {
