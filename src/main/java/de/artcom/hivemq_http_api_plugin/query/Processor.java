@@ -27,7 +27,7 @@ class Processor {
     }
 
     private Result processSingleQuery(Query query) {
-        RetainedTopicTree.Node node = retainedTopicTree.getTopic(query.topic);
+        RetainedTopicTree.Node node = retainedTopicTree.getNode(query.topic);
 
         if (node == null) {
             return new TopicNotFoundError(query.topic);
@@ -37,7 +37,7 @@ class Processor {
     }
 
     private Result processWildcardQuery(Query query) {
-        return retainedTopicTree.getWildcardTopics(query.topic)
+        return retainedTopicTree.getWildcardNodes(query.topic)
                 .map(node -> createResult(node, query.depth))
                 .collect(Collectors.toCollection(ResultList::new));
     }

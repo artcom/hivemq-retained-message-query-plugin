@@ -30,46 +30,46 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
 
         Set<RetainedMessage> messages = retainedMessageStore.getRetainedMessages();
         for (RetainedMessage message : messages) {
-            addTopic(message.getTopic(), message.getMessage());
+            addNode(message.getTopic(), message.getMessage());
         }
     }
 
-    public Node getTopic(@Nullable String topic) {
+    public Node getNode(@Nullable String topic) {
         lock.readLock().lock();
 
         try {
-            return root.getTopic(topic);
+            return root.getNode(topic);
         } finally {
             lock.readLock().unlock();
         }
     }
 
-    public Stream<Node> getWildcardTopics(String topic) {
+    public Stream<Node> getWildcardNodes(String topic) {
         lock.readLock().lock();
 
         try {
-            return root.getWildcardTopics(topic);
+            return root.getWildcardNodes(topic);
         } finally {
             lock.readLock().unlock();
         }
     }
 
-    private void addTopic(String topic, byte[] payload) {
+    private void addNode(String topic, byte[] payload) {
         lock.writeLock().lock();
 
         try {
-            Node node = root.createTopic(topic);
+            Node node = root.createNode(topic);
             node.payload = new String(payload, Charset.forName("UTF-8"));
         } finally {
             lock.writeLock().unlock();
         }
     }
 
-    private void removeTopic(String topic) {
+    private void removeNode(String topic) {
         lock.writeLock().lock();
 
         try {
-            root.removeTopic(topic);
+            root.removeNode(topic);
         } finally {
             lock.writeLock().unlock();
         }
@@ -83,9 +83,9 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
                         byte[] payload = publish.getPayload();
 
                         if (payload.length == 0) {
-                            removeTopic(topic);
+                            removeNode(topic);
                         } else {
-                            addTopic(topic, payload);
+                            addNode(topic, payload);
                         }
                     }
             );
@@ -124,11 +124,11 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             return children.values().stream();
         }
 
-        private Node getTopic(@Nullable String topic) {
-            return getPath(toPath(topic));
+        private Node getNode(@Nullable String topic) {
+            return getNode(toPath(topic));
         }
 
-        private Node getPath(ImmutableList<String> path) {
+        private Node getNode(ImmutableList<String> path) {
             if (path.isEmpty()) {
                 return this;
             }
@@ -140,14 +140,14 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
                 return null;
             }
 
-            return child.getPath(path.subList(1, path.size()));
+            return child.getNode(path.subList(1, path.size()));
         }
 
-        private Stream<Node> getWildcardTopics(String topic) {
-            return getWildcardPathes(toPath(topic));
+        private Stream<Node> getWildcardNodes(String topic) {
+            return getWildcardNodes(toPath(topic));
         }
 
-        private Stream<Node> getWildcardPathes(ImmutableList<String> path) {
+        private Stream<Node> getWildcardNodes(ImmutableList<String> path) {
             if (path.isEmpty()) {
                 return Stream.of(this);
             }
@@ -155,7 +155,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             String name = path.get(0);
 
             if ("+".equals(name)) {
-                return getChildren().flatMap(child -> child.getWildcardPathes(path.subList(1, path.size())));
+                return getChildren().flatMap(child -> child.getWildcardNodes(path.subList(1, path.size())));
             } else {
                 Node child = children.get(name);
 
@@ -163,15 +163,15 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
                     return Stream.empty();
                 }
 
-                return child.getWildcardPathes(path.subList(1, path.size()));
+                return child.getWildcardNodes(path.subList(1, path.size()));
             }
         }
 
-        private Node createTopic(String topic) {
-            return createPath(toPath(topic), 0);
+        private Node createNode(String topic) {
+            return createNode(toPath(topic), 0);
         }
 
-        private Node createPath(ImmutableList<String> path, int index) {
+        private Node createNode(ImmutableList<String> path, int index) {
             if (index >= path.size()) {
                 return this;
             }
@@ -184,14 +184,14 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
 
             Node child = children.get(name);
 
-            return child.createPath(path, index + 1);
+            return child.createNode(path, index + 1);
         }
 
-        private void removeTopic(String topic) {
-            removePath(toPath(topic));
+        private void removeNode(String topic) {
+            removeNode(toPath(topic));
         }
 
-        private boolean removePath(ImmutableList<String> path) {
+        private boolean removeNode(ImmutableList<String> path) {
             if (path.isEmpty()) {
                 payload = null;
                 return children.isEmpty();
@@ -204,7 +204,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
                 return false;
             }
 
-            boolean remove = child.removePath(path.subList(1, path.size()));
+            boolean remove = child.removeNode(path.subList(1, path.size()));
 
             if (remove) {
                 children.remove(name);
