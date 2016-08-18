@@ -1,7 +1,6 @@
 package de.artcom.hivemq_http_api_plugin;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedMap;
 import com.hivemq.spi.callback.events.OnPublishReceivedCallback;
 import com.hivemq.spi.callback.exception.OnPublishReceivedException;
 import com.hivemq.spi.message.PUBLISH;
@@ -13,11 +12,11 @@ import org.jetbrains.annotations.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Stream;
 
 @Singleton
 public class RetainedTopicTree implements OnPublishReceivedCallback {
@@ -45,7 +44,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
         }
     }
 
-    public List<Node> getWildcardTopics(String topic) {
+    public Stream<Node> getWildcardTopics(String topic) {
         lock.readLock().lock();
 
         try {
@@ -103,7 +102,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
         public final String topic;
         @Nullable
         public String payload;
-        private final HashMap<String, Node> children = new HashMap<>();
+        private final TreeMap<String, Node> children = new TreeMap<>();
 
         private static Node rootNode() {
             return new Node(null);
@@ -121,8 +120,8 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             return !children.isEmpty();
         }
 
-        public ImmutableSortedMap<String, Node> getChildren() {
-            return ImmutableSortedMap.copyOf(children);
+        public Stream<Node> getChildren() {
+            return children.values().stream();
         }
 
         private Node getTopic(String topic) {
@@ -144,31 +143,24 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             return child.getPath(path.subList(1, path.size()));
         }
 
-        private List<Node> getWildcardTopics(String topic) {
+        private Stream<Node> getWildcardTopics(String topic) {
             return getWildcardPathes(toPath(topic));
         }
 
-        private List<Node> getWildcardPathes(ImmutableList<String> path) {
+        private Stream<Node> getWildcardPathes(ImmutableList<String> path) {
             if (path.isEmpty()) {
-                return ImmutableList.of(this);
+                return Stream.of(this);
             }
 
             String name = path.get(0);
 
             if ("+".equals(name)) {
-                ImmutableList.Builder<Node> builder = ImmutableList.<Node>builder();
-
-                for (Node child : children.values()) {
-                    List<Node> matches = child.getWildcardPathes(path.subList(1, path.size()));
-                    builder.addAll(matches);
-                }
-
-                return builder.build();
+                return getChildren().flatMap(child -> child.getWildcardPathes(path.subList(1, path.size())));
             } else {
                 Node child = children.get(name);
 
                 if (child == null) {
-                    return ImmutableList.of();
+                    return Stream.empty();
                 }
 
                 return child.getWildcardPathes(path.subList(1, path.size()));
