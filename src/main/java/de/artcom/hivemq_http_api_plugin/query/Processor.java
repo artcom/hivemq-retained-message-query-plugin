@@ -12,7 +12,6 @@ import de.artcom.hivemq_http_api_plugin.query.results.TopicNotFoundError;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 class Processor {
     private static final Splitter WILDCARD_TOPIC_SPLITTER = Splitter
@@ -41,7 +40,7 @@ class Processor {
             return new TopicNotFoundError(query.topic);
         }
 
-        return createResult(node, query.topic, query.depth);
+        return createResult(node, query.depth);
     }
 
     private Result processWildcardQuery(Query query) {
@@ -54,15 +53,11 @@ class Processor {
         RetainedTopicTree.Node node = retainedTopicTree.getTopic(prefix);
 
         if (node != null) {
-            for (Map.Entry<String, RetainedTopicTree.Node> entry : node.getChildren().entrySet()) {
-                String childName = entry.getKey();
-                RetainedTopicTree.Node childNode = entry.getValue();
-
-                RetainedTopicTree.Node match = retainedTopicTree.getTopic(suffix, childNode);
+            for (RetainedTopicTree.Node child : node.getChildren().values()) {
+                RetainedTopicTree.Node match = retainedTopicTree.getTopic(suffix, child);
 
                 if (match != null) {
-                    String topic = joinPath(prefix, childName, suffix);
-                    results.add(createResult(match, topic, query.depth));
+                    results.add(createResult(match, query.depth));
                 }
             }
         }
@@ -70,30 +65,19 @@ class Processor {
         return new ResultList(results);
     }
 
-    private static String joinPath(String prefix, String childName) {
-        return prefix.isEmpty() ? childName : prefix + "/" + childName;
-    }
-
-    private static String joinPath(String prefix, String childName, String suffix) {
-        String topic = joinPath(prefix, childName);
-        return suffix.isEmpty() ? topic : topic + "/" + suffix;
-    }
-
-    private static Topic createResult(RetainedTopicTree.Node node, String topic, int depth) {
+    private static Topic createResult(RetainedTopicTree.Node node, int depth) {
         List<Topic> children = null;
 
         if (depth != 0 && node.hasChildren()) {
             children = new ArrayList<>();
 
-            for (Map.Entry<String, RetainedTopicTree.Node> entry : node.getChildren().entrySet()) {
-                String name = entry.getKey();
-                RetainedTopicTree.Node child = entry.getValue();
-                children.add(createResult(child, joinPath(topic, name), depth - 1));
+            for (RetainedTopicTree.Node child : node.getChildren().values()) {
+                children.add(createResult(child, depth - 1));
             }
         }
 
         return new Topic(
-                topic,
+                node.topic,
                 node.payload,
                 children
         );

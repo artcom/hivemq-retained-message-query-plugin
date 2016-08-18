@@ -20,7 +20,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Singleton
 public class RetainedTopicTree implements OnPublishReceivedCallback {
-    private final Node root = new Node();
+    private final Node root = Node.rootNode();
     private final ExecutorService executorService;
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
@@ -93,8 +93,22 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
 
     public static class Node {
         @Nullable
+        public final String topic;
+        @Nullable
         public String payload;
         private final HashMap<String, Node> children = new HashMap<>();
+
+        private static Node rootNode() {
+            return new Node(null);
+        }
+
+        private static Node forPath(ImmutableList<String> path) {
+            return new Node(fromPath(path));
+        }
+
+        private Node(@Nullable String topic) {
+            this.topic = topic;
+        }
 
         public boolean hasChildren() {
             return !children.isEmpty();
@@ -124,23 +138,23 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
         }
 
         private Node createTopic(String topic) {
-            return createPath(toPath(topic));
+            return createPath(toPath(topic), 0);
         }
 
-        private Node createPath(ImmutableList<String> path) {
-            if (path.isEmpty()) {
+        private Node createPath(ImmutableList<String> path, int index) {
+            if (index >= path.size()) {
                 return this;
             }
 
-            String name = path.get(0);
+            String name = path.get(index);
 
             if (!children.containsKey(name)) {
-                children.put(name, new Node());
+                children.put(name, Node.forPath(path.subList(0, index + 1)));
             }
 
             Node child = children.get(name);
 
-            return child.createPath(path.subList(1, path.size()));
+            return child.createPath(path, index + 1);
         }
 
         private void removeTopic(String topic) {
@@ -171,6 +185,10 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
 
         private static ImmutableList<String> toPath(String topic) {
             return ImmutableList.copyOf(topic.split("/"));
+        }
+
+        private static String fromPath(ImmutableList<String> path) {
+            return String.join("/", path);
         }
     }
 }
