@@ -38,19 +38,4 @@ public class Topic implements Result {
                 Stream.of(new Topic(topic, payload, null)),
                 childrenStream.flatMap(Topic::flatten));
     }
-
-    @Nullable
-    public String getTopic() {
-        return topic;
-    }
-
-    @Nullable
-    public String getPayload() {
-        return payload;
-    }
-
-    @Nullable
-    public List<Topic> getChildren() {
-        return children;
-    }
 }
