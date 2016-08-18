@@ -9,7 +9,7 @@ const hooks = require("./hooks")
 
 describe("CORS Support", function() {
   before(hooks.connectMqttClient)
-  beforeEach(hooks.publishTestData({ topic1: "foo" }))
+  beforeEach(hooks.publishTestData("test", { topic1: "foo" }))
   afterEach(hooks.unpublishTestData)
   after(hooks.disconnectMqttClient)
 

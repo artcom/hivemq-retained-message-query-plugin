@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import de.artcom.hivemq_http_api_plugin.query.results.Error;
 import de.artcom.hivemq_http_api_plugin.query.results.ParameterError;
 import de.artcom.hivemq_http_api_plugin.query.results.Result;
 import de.artcom.hivemq_http_api_plugin.query.results.ResultList;
@@ -87,11 +86,6 @@ public class Resource {
             query = objectMapper.treeToValue(queryJson, Query.class);
         } catch (JsonProcessingException e) {
             return new ParameterError();
-        }
-
-        Error error = query.validate();
-        if (error != null) {
-            return error;
         }
 
         Result result = processor.processQuery(query);

@@ -8,10 +8,9 @@ function connectMqttClient(done) {
   this.client.on("connect", () => done())
 }
 
-function publishTestData(testData) {
+function publishTestData(prefix, testData) {
   return function() {
-    this.topic = `hivemq-api-${Date.now()}`
-    this.prefix = `test/${this.topic}`
+    this.prefix = `${prefix}/hivemq-api-${Date.now()}`
     this.publishedTopics = new Set()
 
     this.publish = (data) => {
