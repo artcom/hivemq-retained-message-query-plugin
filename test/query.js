@@ -167,9 +167,11 @@ describe("Query API", function() {
       })
 
       it("should return children of the root node", function() {
-        const query = postQuery({ topic: "", depth: 1 })
-        return expect(query).to.eventually.have.property("children").that.includes({
-          topic: "test"
+        return postQuery({ topic: null, depth: 1 }).then((query) => {
+          expect(query).to.have.property("topic", null)
+          expect(query).to.have.property("children").that.includes({
+            topic: "test"
+          })
         })
       })
 

@@ -8,15 +8,19 @@ import java.util.stream.Stream;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Topic implements Result {
+    @Nullable
     private final String topic;
+
     @Nullable
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private final String payload;
+
     @Nullable
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private final List<Topic> children;
 
-    public Topic(String topic, @Nullable String payload, @Nullable List<Topic> children) {
+    public Topic(@Nullable String topic, @Nullable String payload, @Nullable List<Topic> children) {
         this.topic = topic;
         this.payload = payload;
         this.children = children;
@@ -35,6 +39,7 @@ public class Topic implements Result {
                 childrenStream.flatMap(Topic::flatten));
     }
 
+    @Nullable
     public String getTopic() {
         return topic;
     }

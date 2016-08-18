@@ -34,7 +34,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
         }
     }
 
-    public Node getTopic(String topic) {
+    public Node getTopic(@Nullable String topic) {
         lock.readLock().lock();
 
         try {
@@ -124,7 +124,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             return children.values().stream();
         }
 
-        private Node getTopic(String topic) {
+        private Node getTopic(@Nullable String topic) {
             return getPath(toPath(topic));
         }
 
@@ -213,7 +213,11 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             return remove && children.isEmpty() && payload == null;
         }
 
-        private static ImmutableList<String> toPath(String topic) {
+        private static ImmutableList<String> toPath(@Nullable String topic) {
+            if (topic == null) {
+                return ImmutableList.of();
+            }
+
             return ImmutableList.copyOf(topic.split("/"));
         }
 
