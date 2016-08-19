@@ -24,10 +24,13 @@ describe("Query API", function() {
 
   prefixes.forEach(function({ prefix, description }) {
     context(description, function() {
-      beforeEach(hooks.publishTestData(prefix, {
-        topic1: "foo",
-        topic2: "bar"
-      }))
+      beforeEach(hooks.preparePublish(prefix))
+      beforeEach(function() {
+        return this.publish({
+          [`${this.testTopic}/topic1`]: "foo",
+          [`${this.testTopic}/topic2`]: "bar"
+        })
+      })
 
       afterEach(hooks.unpublishTestData)
 
@@ -42,7 +45,7 @@ describe("Query API", function() {
 
         it("should return the payload of a topic with trailing slash", function() {
           const query = this.publish({
-            "topic3/": "baz"
+            [`${this.testTopic}/topic3/`]: "baz"
           }).then(() =>
             postQuery({ topic: `${this.testTopic}/topic3/` })
           )
@@ -66,7 +69,7 @@ describe("Query API", function() {
         it("should return error for unpublished topic", function() {
           const expectedStatus = 404
           const query = this.publish({
-            topic1: null
+            [`${this.testTopic}/topic1`]: null
           }).then(() =>
             postQuery({ topic: `${this.testTopic}/topic1` }, expectedStatus)
           )
@@ -79,10 +82,9 @@ describe("Query API", function() {
 
         it("should return no payload for unpublished topic with children", function() {
           const query = this.publish({
-            "topic1/foo": "bar"
-          }).then(() => this.publish({
-            topic1: null
-          })).then(() =>
+            [`${this.testTopic}/topic1/foo`]: "bar",
+            [`${this.testTopic}/topic1`]: null
+          }).then(() =>
             postQuery({ topic: `${this.testTopic}/topic1`, depth: 1 })
           )
 
@@ -97,9 +99,9 @@ describe("Query API", function() {
         it("should return error for unpublished nested topic", function() {
           const expectedStatus = 404
           const query = this.publish({
-            "foo/bar": "baz"
+            [`${this.testTopic}/foo/bar`]: "baz"
           }).then(() => this.publish({
-            "foo/bar": null
+            [`${this.testTopic}/foo/bar`]: null
           })).then(() =>
             postQuery({ topic: `${this.testTopic}/foo/bar` }, expectedStatus)
           )
@@ -113,7 +115,7 @@ describe("Query API", function() {
         describe("with Depth Parameter", function() {
           beforeEach(function() {
             return this.publish({
-              "topic2/deepTopic": "baz"
+              [`${this.testTopic}/topic2/deepTopic`]: "baz"
             })
           })
 
@@ -178,8 +180,8 @@ describe("Query API", function() {
 
           it("should support empty string subtopics", function() {
             const query = this.publish({
-              "/foo1": "bar1",
-              "foo2/": "bar2"
+              [`${this.testTopic}//foo1`]: "bar1",
+              [`${this.testTopic}/foo2/`]: "bar2"
             }).then(() =>
               postQuery({ topic: this.testTopic, depth: -1 })
             )
@@ -306,8 +308,8 @@ describe("Query API", function() {
 
         it("should support different depth parameters", function() {
           const query = this.publish({
-            "topic1/child": "one",
-            "topic2/child": "two"
+            [`${this.testTopic}/topic1/child`]: "one",
+            [`${this.testTopic}/topic2/child`]: "two"
           }).then(() =>
             postQuery([
               { topic: `${this.testTopic}/topic1` },
@@ -335,8 +337,8 @@ describe("Query API", function() {
 
         it("should support different flatten parameters", function() {
           const query = this.publish({
-            "topic1/child": "one",
-            "topic2/child": "two"
+            [`${this.testTopic}/topic1/child`]: "one",
+            [`${this.testTopic}/topic2/child`]: "two"
           }).then(() =>
             postQuery([
               { topic: `${this.testTopic}/topic1` },
@@ -400,8 +402,8 @@ describe("Query API", function() {
       describe("Wildcard Queries", function() {
         beforeEach(function() {
           return this.publish({
-            "topic1/child": "one",
-            "topic2/child": "two"
+            [`${this.testTopic}/topic1/child`]: "one",
+            [`${this.testTopic}/topic2/child`]: "two"
           })
         })
 
@@ -428,7 +430,7 @@ describe("Query API", function() {
 
         it("should return all matching deep children", function() {
           const query = this.publish({
-            "topic2/deep/child": "deep"
+            [`${this.testTopic}/topic2/deep/child`]: "deep"
           }).then(() =>
             postQuery({ topic: `${this.testTopic}/+/deep/child` })
           )
@@ -482,7 +484,7 @@ describe("Query API", function() {
 
         it("should support multiple wildcards", function() {
           const query = this.publish({
-            "topic2/otherChild": "three"
+            [`${this.testTopic}/topic2/otherChild`]: "three"
           }).then(() =>
             postQuery({ topic: `${this.testTopic}/+/+` })
           )
@@ -495,8 +497,11 @@ describe("Query API", function() {
         })
 
         it("should support empty string subtopics", function() {
-          const query = this.publish({ "topic3//foo": "true" })
-            .then(() => postQuery({ topic: `${this.testTopic}/+//foo`, depth: 1 }))
+          const query = this.publish({
+            [`${this.testTopic}/topic3//foo`]: "true"
+          }).then(() =>
+            postQuery({ topic: `${this.testTopic}/+//foo`, depth: 1 })
+          )
 
           return expect(query).to.eventually.deep.equal([
             { topic: `${this.testTopic}/topic3//foo`, payload: "true" }

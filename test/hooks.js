@@ -8,7 +8,7 @@ function connectMqttClient(done) {
   this.client.on("connect", () => done())
 }
 
-function publishTestData(prefix, testData) {
+function preparePublish(prefix) {
   return function() {
     this.testTopic = `${prefix}/hivemq-api-${Date.now()}`
     this.publishedTopics = new Set()
@@ -16,17 +16,12 @@ function publishTestData(prefix, testData) {
     this.publish = (data) => {
       const topics = Object.keys(data)
 
-      topics.forEach((topic) => this.publishedTopics.add(`${this.testTopic}/${topic}`))
+      topics.forEach((topic) => this.publishedTopics.add(topic))
 
       return Promise.all(topics.map((topic) =>
-        this.client.publishAsync(`${this.testTopic}/${topic}`, data[topic], {
-          retain: true,
-          qos: 2
-        })
+        this.client.publishAsync(topic, data[topic], { retain: true, qos: 2 })
       ))
     }
-
-    return this.publish(testData)
   }
 }
 
@@ -42,7 +37,7 @@ function disconnectMqttClient() {
 
 module.exports = {
   connectMqttClient,
-  publishTestData,
+  preparePublish,
   unpublishTestData,
   disconnectMqttClient
 }

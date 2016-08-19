@@ -9,9 +9,14 @@ const hooks = require("./hooks")
 
 describe("CORS Support", function() {
   before(hooks.connectMqttClient)
-  beforeEach(hooks.publishTestData("test", { topic1: "foo" }))
-  afterEach(hooks.unpublishTestData)
   after(hooks.disconnectMqttClient)
+
+  beforeEach(hooks.preparePublish("test"))
+  beforeEach(function() {
+    return this.publish({ [`${this.testTopic}/topic1`]: "foo" })
+  })
+
+  afterEach(hooks.unpublishTestData)
 
   it("should handle preflight requests", function() {
     const response = axios(config.QUERY_URL, {
