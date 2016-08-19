@@ -54,26 +54,26 @@ describe("Query API", function() {
         })
 
         it("should return error for inexistent topic", function() {
-          const error = 404
-          const query = postQuery({ topic: `${this.prefix}/does-not-exist` }, error)
+          const expectedStatus = 404
+          const query = postQuery({ topic: `${this.prefix}/does-not-exist` }, expectedStatus)
 
           return expect(query).to.eventually.deep.equal({
             topic: `${this.prefix}/does-not-exist`,
-            error
+            error: expectedStatus
           })
         })
 
         it("should return error for unpublished topic", function() {
-          const error = 404
+          const expectedStatus = 404
           const query = this.publish({
             topic1: null
           }).then(() =>
-            postQuery({ topic: `${this.prefix}/topic1` }, error)
+            postQuery({ topic: `${this.prefix}/topic1` }, expectedStatus)
           )
 
           return expect(query).to.eventually.deep.equal({
             topic: `${this.prefix}/topic1`,
-            error
+            error: expectedStatus
           })
         })
 
@@ -95,18 +95,18 @@ describe("Query API", function() {
         })
 
         it("should return error for unpublished nested topic", function() {
-          const error = 404
+          const expectedStatus = 404
           const query = this.publish({
             "foo/bar": "baz"
           }).then(() => this.publish({
             "foo/bar": null
           })).then(() =>
-            postQuery({ topic: `${this.prefix}/foo/bar` }, error)
+            postQuery({ topic: `${this.prefix}/foo/bar` }, expectedStatus)
           )
 
           return expect(query).to.eventually.deep.equal({
             topic: `${this.prefix}/foo/bar`,
-            error
+            error: expectedStatus
           })
         })
 
@@ -386,11 +386,11 @@ describe("Query API", function() {
 
       describe("Invalid Queries", function() {
         it("should return an error when topic is missing", function() {
-          const error = 400
-          const query = postQuery({ invalid: "query" }, error)
+          const expectedStatus = 400
+          const query = postQuery({ invalid: "query" }, expectedStatus)
 
           return expect(query).to.eventually.deep.equal({
-            error,
+            error: expectedStatus,
             message: "The request body must be a JSON object with a 'topic' and optional 'depth'" +
               " property, or a JSON array of such objects."
           })
