@@ -33,9 +33,9 @@ describe("Query API", function() {
 
       describe("Single Queries", function() {
         it("should return the payload of a topic", function() {
-          const query = postQuery({ topic: `${this.prefix}/topic1` })
+          const query = postQuery({ topic: `${this.testTopic}/topic1` })
           return expect(query).to.eventually.deep.equal({
-            topic: `${this.prefix}/topic1`,
+            topic: `${this.testTopic}/topic1`,
             payload: "foo"
           })
         })
@@ -44,21 +44,21 @@ describe("Query API", function() {
           const query = this.publish({
             "topic3/": "baz"
           }).then(() =>
-            postQuery({ topic: `${this.prefix}/topic3/` })
+            postQuery({ topic: `${this.testTopic}/topic3/` })
           )
 
           return expect(query).to.eventually.deep.equal({
-            topic: `${this.prefix}/topic3/`,
+            topic: `${this.testTopic}/topic3/`,
             payload: "baz"
           })
         })
 
         it("should return error for inexistent topic", function() {
           const expectedStatus = 404
-          const query = postQuery({ topic: `${this.prefix}/does-not-exist` }, expectedStatus)
+          const query = postQuery({ topic: `${this.testTopic}/does-not-exist` }, expectedStatus)
 
           return expect(query).to.eventually.deep.equal({
-            topic: `${this.prefix}/does-not-exist`,
+            topic: `${this.testTopic}/does-not-exist`,
             error: expectedStatus
           })
         })
@@ -68,11 +68,11 @@ describe("Query API", function() {
           const query = this.publish({
             topic1: null
           }).then(() =>
-            postQuery({ topic: `${this.prefix}/topic1` }, expectedStatus)
+            postQuery({ topic: `${this.testTopic}/topic1` }, expectedStatus)
           )
 
           return expect(query).to.eventually.deep.equal({
-            topic: `${this.prefix}/topic1`,
+            topic: `${this.testTopic}/topic1`,
             error: expectedStatus
           })
         })
@@ -83,13 +83,13 @@ describe("Query API", function() {
           }).then(() => this.publish({
             topic1: null
           })).then(() =>
-            postQuery({ topic: `${this.prefix}/topic1`, depth: 1 })
+            postQuery({ topic: `${this.testTopic}/topic1`, depth: 1 })
           )
 
           return expect(query).to.eventually.deep.equal({
-            topic: `${this.prefix}/topic1`,
+            topic: `${this.testTopic}/topic1`,
             children: [
-              { topic: `${this.prefix}/topic1/foo`, payload: "bar" }
+              { topic: `${this.testTopic}/topic1/foo`, payload: "bar" }
             ]
           })
         })
@@ -101,11 +101,11 @@ describe("Query API", function() {
           }).then(() => this.publish({
             "foo/bar": null
           })).then(() =>
-            postQuery({ topic: `${this.prefix}/foo/bar` }, expectedStatus)
+            postQuery({ topic: `${this.testTopic}/foo/bar` }, expectedStatus)
           )
 
           return expect(query).to.eventually.deep.equal({
-            topic: `${this.prefix}/foo/bar`,
+            topic: `${this.testTopic}/foo/bar`,
             error: expectedStatus
           })
         })
@@ -118,16 +118,16 @@ describe("Query API", function() {
           })
 
           it("should return empty result for intermediary topic", function() {
-            const query = postQuery({ topic: this.prefix, depth: 0 })
+            const query = postQuery({ topic: this.testTopic, depth: 0 })
             return expect(query).to.eventually.deep.equal({
-              topic: this.prefix
+              topic: this.testTopic
             })
           })
 
           it("should return singleton array for flattened intermediary topic", function() {
-            const query = postQuery({ topic: this.prefix, depth: 0, flatten: true })
+            const query = postQuery({ topic: this.testTopic, depth: 0, flatten: true })
             return expect(query).to.eventually.deep.equal([
-              { topic: this.prefix }
+              { topic: this.testTopic }
             ])
           })
 
@@ -143,31 +143,31 @@ describe("Query API", function() {
             })
 
           it("should return the payload of immediate children", function() {
-            const query = postQuery({ topic: this.prefix, depth: 1 })
+            const query = postQuery({ topic: this.testTopic, depth: 1 })
             return expect(query).to.eventually.deep.equal({
-              topic: this.prefix,
+              topic: this.testTopic,
               children: [
-                { topic: `${this.prefix}/topic1`, payload: "foo" },
-                { topic: `${this.prefix}/topic2`, payload: "bar" }
+                { topic: `${this.testTopic}/topic1`, payload: "foo" },
+                { topic: `${this.testTopic}/topic2`, payload: "bar" }
               ]
             })
           })
 
           it("should return the payload of deeper children", function() {
-            const query = postQuery({ topic: this.prefix, depth: 2 })
+            const query = postQuery({ topic: this.testTopic, depth: 2 })
             return expect(query).to.eventually.deep.equal({
-              topic: this.prefix,
+              topic: this.testTopic,
               children: [
                 {
-                  topic: `${this.prefix}/topic1`,
+                  topic: `${this.testTopic}/topic1`,
                   payload: "foo"
                 },
                 {
-                  topic: `${this.prefix}/topic2`,
+                  topic: `${this.testTopic}/topic2`,
                   payload: "bar",
                   children: [
                     {
-                      topic: `${this.prefix}/topic2/deepTopic`,
+                      topic: `${this.testTopic}/topic2/deepTopic`,
                       payload: "baz"
                     }
                   ]
@@ -181,40 +181,40 @@ describe("Query API", function() {
               "/foo1": "bar1",
               "foo2/": "bar2"
             }).then(() =>
-              postQuery({ topic: this.prefix, depth: -1 })
+              postQuery({ topic: this.testTopic, depth: -1 })
             )
 
             return expect(query).to.eventually.deep.equal({
-              topic: this.prefix,
+              topic: this.testTopic,
               children: [
                 {
-                  topic: `${this.prefix}/`,
+                  topic: `${this.testTopic}/`,
                   children: [
                     {
-                      topic: `${this.prefix}//foo1`,
+                      topic: `${this.testTopic}//foo1`,
                       payload: "bar1"
                     }
                   ]
                 },
                 {
-                  topic: `${this.prefix}/foo2`,
+                  topic: `${this.testTopic}/foo2`,
                   children: [
                     {
-                      topic: `${this.prefix}/foo2/`,
+                      topic: `${this.testTopic}/foo2/`,
                       payload: "bar2"
                     }
                   ]
                 },
                 {
-                  topic: `${this.prefix}/topic1`,
+                  topic: `${this.testTopic}/topic1`,
                   payload: "foo"
                 },
                 {
-                  topic: `${this.prefix}/topic2`,
+                  topic: `${this.testTopic}/topic2`,
                   payload: "bar",
                   children: [
                     {
-                      topic: `${this.prefix}/topic2/deepTopic`,
+                      topic: `${this.testTopic}/topic2/deepTopic`,
                       payload: "baz"
                     }
                   ]
@@ -224,12 +224,12 @@ describe("Query API", function() {
           })
 
           it("should return flattened list of topics", function() {
-            const query = postQuery({ topic: this.prefix, depth: 2, flatten: true })
+            const query = postQuery({ topic: this.testTopic, depth: 2, flatten: true })
             return expect(query).to.eventually.deep.equal([
-              { topic: this.prefix },
-              { topic: `${this.prefix}/topic1`, payload: "foo" },
-              { topic: `${this.prefix}/topic2`, payload: "bar" },
-              { topic: `${this.prefix}/topic2/deepTopic`, payload: "baz" }
+              { topic: this.testTopic },
+              { topic: `${this.testTopic}/topic1`, payload: "foo" },
+              { topic: `${this.testTopic}/topic2`, payload: "bar" },
+              { topic: `${this.testTopic}/topic2/deepTopic`, payload: "baz" }
             ])
           })
 
@@ -249,20 +249,20 @@ describe("Query API", function() {
           })
 
           it("should return all children", function() {
-            const query = postQuery({ topic: this.prefix, depth: -1 })
+            const query = postQuery({ topic: this.testTopic, depth: -1 })
             return expect(query).to.eventually.deep.equal({
-              topic: this.prefix,
+              topic: this.testTopic,
               children: [
                 {
-                  topic: `${this.prefix}/topic1`,
+                  topic: `${this.testTopic}/topic1`,
                   payload: "foo"
                 },
                 {
-                  topic: `${this.prefix}/topic2`,
+                  topic: `${this.testTopic}/topic2`,
                   payload: "bar",
                   children: [
                     {
-                      topic: `${this.prefix}/topic2/deepTopic`,
+                      topic: `${this.testTopic}/topic2/deepTopic`,
                       payload: "baz"
                     }
                   ]
@@ -276,29 +276,29 @@ describe("Query API", function() {
       describe("Batch Queries", function() {
         it("should return the values of multiple topics", function() {
           const query = postQuery([
-            { topic: `${this.prefix}/topic1` },
-            { topic: `${this.prefix}/topic2` }
+            { topic: `${this.testTopic}/topic1` },
+            { topic: `${this.testTopic}/topic2` }
           ])
 
           return expect(query).to.eventually.deep.equal([
-            { topic: `${this.prefix}/topic1`, payload: "foo" },
-            { topic: `${this.prefix}/topic2`, payload: "bar" }
+            { topic: `${this.testTopic}/topic1`, payload: "foo" },
+            { topic: `${this.testTopic}/topic2`, payload: "bar" }
           ])
         })
 
         it("should return values and errors for multiple topics", function() {
           const query = postQuery([
-            { topic: `${this.prefix}/topic1` },
-            { topic: `${this.prefix}/does-not-exist` }
+            { topic: `${this.testTopic}/topic1` },
+            { topic: `${this.testTopic}/does-not-exist` }
           ])
 
           return expect(query).to.eventually.deep.equal([
             {
-              topic: `${this.prefix}/topic1`,
+              topic: `${this.testTopic}/topic1`,
               payload: "foo"
             },
             {
-              topic: `${this.prefix}/does-not-exist`,
+              topic: `${this.testTopic}/does-not-exist`,
               error: 404
             }
           ])
@@ -310,22 +310,22 @@ describe("Query API", function() {
             "topic2/child": "two"
           }).then(() =>
             postQuery([
-              { topic: `${this.prefix}/topic1` },
-              { topic: `${this.prefix}/topic2`, depth: 1 }
+              { topic: `${this.testTopic}/topic1` },
+              { topic: `${this.testTopic}/topic2`, depth: 1 }
             ])
           )
 
           return expect(query).to.eventually.deep.equal([
             {
-              topic: `${this.prefix}/topic1`,
+              topic: `${this.testTopic}/topic1`,
               payload: "foo"
             },
             {
-              topic: `${this.prefix}/topic2`,
+              topic: `${this.testTopic}/topic2`,
               payload: "bar",
               children: [
                 {
-                  topic: `${this.prefix}/topic2/child`,
+                  topic: `${this.testTopic}/topic2/child`,
                   payload: "two"
                 }
               ]
@@ -339,47 +339,47 @@ describe("Query API", function() {
             "topic2/child": "two"
           }).then(() =>
             postQuery([
-              { topic: `${this.prefix}/topic1` },
-              { topic: `${this.prefix}/topic2`, depth: 1, flatten: true }
+              { topic: `${this.testTopic}/topic1` },
+              { topic: `${this.testTopic}/topic2`, depth: 1, flatten: true }
             ])
           )
 
           return expect(query).to.eventually.deep.equal([
             {
-              topic: `${this.prefix}/topic1`,
+              topic: `${this.testTopic}/topic1`,
               payload: "foo"
             },
             [
-              { topic: `${this.prefix}/topic2`, payload: "bar" },
-              { topic: `${this.prefix}/topic2/child`, payload: "two" }
+              { topic: `${this.testTopic}/topic2`, payload: "bar" },
+              { topic: `${this.testTopic}/topic2/child`, payload: "two" }
             ]
           ])
         })
 
         it("should support wildcard queries", function() {
           const query = postQuery([
-            { topic: `${this.prefix}/+` },
-            { topic: `${this.prefix}/topic2` }
+            { topic: `${this.testTopic}/+` },
+            { topic: `${this.testTopic}/topic2` }
           ])
 
           return expect(query).to.eventually.deep.equal([
             [
-              { topic: `${this.prefix}/topic1`, payload: "foo" },
-              { topic: `${this.prefix}/topic2`, payload: "bar" }
+              { topic: `${this.testTopic}/topic1`, payload: "foo" },
+              { topic: `${this.testTopic}/topic2`, payload: "bar" }
             ],
-            { topic: `${this.prefix}/topic2`, payload: "bar" }
+            { topic: `${this.testTopic}/topic2`, payload: "bar" }
           ])
         })
 
         it("should support wildcard queries without results", function() {
           const query = postQuery([
-            { topic: `${this.prefix}/+/does-not-exist` },
-            { topic: `${this.prefix}/topic2` }
+            { topic: `${this.testTopic}/+/does-not-exist` },
+            { topic: `${this.testTopic}/topic2` }
           ])
 
           return expect(query).to.eventually.deep.equal([
             [],
-            { topic: `${this.prefix}/topic2`, payload: "bar" }
+            { topic: `${this.testTopic}/topic2`, payload: "bar" }
           ])
         })
       })
@@ -406,23 +406,23 @@ describe("Query API", function() {
         })
 
         it("should return all children", function() {
-          const query = postQuery({ topic: `${this.prefix}/+` })
+          const query = postQuery({ topic: `${this.testTopic}/+` })
           return expect(query).to.eventually.deep.equal([
-            { topic: `${this.prefix}/topic1`, payload: "foo" },
-            { topic: `${this.prefix}/topic2`, payload: "bar" }
+            { topic: `${this.testTopic}/topic1`, payload: "foo" },
+            { topic: `${this.testTopic}/topic2`, payload: "bar" }
           ])
         })
 
         it("should return empty array when no topics match", function() {
-          const query = postQuery({ topic: `${this.prefix}/+/does-not-exist` })
+          const query = postQuery({ topic: `${this.testTopic}/+/does-not-exist` })
           return expect(query).to.eventually.deep.equal([])
         })
 
         it("should return all matching children", function() {
-          const query = postQuery({ topic: `${this.prefix}/+/child` })
+          const query = postQuery({ topic: `${this.testTopic}/+/child` })
           return expect(query).to.eventually.deep.equal([
-            { topic: `${this.prefix}/topic1/child`, payload: "one" },
-            { topic: `${this.prefix}/topic2/child`, payload: "two" }
+            { topic: `${this.testTopic}/topic1/child`, payload: "one" },
+            { topic: `${this.testTopic}/topic2/child`, payload: "two" }
           ])
         })
 
@@ -430,32 +430,32 @@ describe("Query API", function() {
           const query = this.publish({
             "topic2/deep/child": "deep"
           }).then(() =>
-            postQuery({ topic: `${this.prefix}/+/deep/child` })
+            postQuery({ topic: `${this.testTopic}/+/deep/child` })
           )
 
           return expect(query).to.eventually.deep.equal([
-            { topic: `${this.prefix}/topic2/deep/child`, payload: "deep" }
+            { topic: `${this.testTopic}/topic2/deep/child`, payload: "deep" }
           ])
         })
 
         it("should support the depth parameter", function() {
-          const query = postQuery({ topic: `${this.prefix}/+`, depth: 1 })
+          const query = postQuery({ topic: `${this.testTopic}/+`, depth: 1 })
           return expect(query).to.eventually.deep.equal([
             {
-              topic: `${this.prefix}/topic1`,
+              topic: `${this.testTopic}/topic1`,
               payload: "foo",
               children: [
                 {
-                  topic: `${this.prefix}/topic1/child`,
+                  topic: `${this.testTopic}/topic1/child`,
                   payload: "one" }
               ]
             },
             {
-              topic: `${this.prefix}/topic2`,
+              topic: `${this.testTopic}/topic2`,
               payload: "bar",
               children: [
                 {
-                  topic: `${this.prefix}/topic2/child`,
+                  topic: `${this.testTopic}/topic2/child`,
                   payload: "two"
                 }
               ]
@@ -464,19 +464,19 @@ describe("Query API", function() {
         })
 
         it("should support the depth and flatten parameter", function() {
-          const query = postQuery({ topic: `${this.prefix}/+`, depth: 1, flatten: true })
+          const query = postQuery({ topic: `${this.testTopic}/+`, depth: 1, flatten: true })
           return expect(query).to.eventually.deep.equal([
-            { topic: `${this.prefix}/topic1`, payload: "foo" },
-            { topic: `${this.prefix}/topic1/child`, payload: "one" },
-            { topic: `${this.prefix}/topic2`, payload: "bar" },
-            { topic: `${this.prefix}/topic2/child`, payload: "two" }
+            { topic: `${this.testTopic}/topic1`, payload: "foo" },
+            { topic: `${this.testTopic}/topic1/child`, payload: "one" },
+            { topic: `${this.testTopic}/topic2`, payload: "bar" },
+            { topic: `${this.testTopic}/topic2/child`, payload: "two" }
           ])
         })
 
         it("should support leading wildcard", function() {
-          const query = postQuery({ topic: this.prefix.replace("test", "+") })
+          const query = postQuery({ topic: this.testTopic.replace("test", "+") })
           return expect(query).to.eventually.deep.equal([
-            { topic: this.prefix }
+            { topic: this.testTopic }
           ])
         })
 
@@ -484,22 +484,22 @@ describe("Query API", function() {
           const query = this.publish({
             "topic2/otherChild": "three"
           }).then(() =>
-            postQuery({ topic: `${this.prefix}/+/+` })
+            postQuery({ topic: `${this.testTopic}/+/+` })
           )
 
           return expect(query).to.eventually.deep.equal([
-            { topic: `${this.prefix}/topic1/child`, payload: "one" },
-            { topic: `${this.prefix}/topic2/child`, payload: "two" },
-            { topic: `${this.prefix}/topic2/otherChild`, payload: "three" }
+            { topic: `${this.testTopic}/topic1/child`, payload: "one" },
+            { topic: `${this.testTopic}/topic2/child`, payload: "two" },
+            { topic: `${this.testTopic}/topic2/otherChild`, payload: "three" }
           ])
         })
 
         it("should support empty string subtopics", function() {
           const query = this.publish({ "topic3//foo": "true" })
-            .then(() => postQuery({ topic: `${this.prefix}/+//foo`, depth: 1 }))
+            .then(() => postQuery({ topic: `${this.testTopic}/+//foo`, depth: 1 }))
 
           return expect(query).to.eventually.deep.equal([
-            { topic: `${this.prefix}/topic3//foo`, payload: "true" }
+            { topic: `${this.testTopic}/topic3//foo`, payload: "true" }
           ])
         })
       })

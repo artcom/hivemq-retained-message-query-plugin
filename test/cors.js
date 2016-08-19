@@ -16,7 +16,7 @@ describe("CORS Support", function() {
   it("should handle preflight requests", function() {
     const response = axios(config.QUERY_URL, {
       method: "OPTIONS",
-      data: { topic: `${this.prefix}/topic1` },
+      data: { topic: `${this.testTopic}/topic1` },
       headers: {
         "origin": "localhost",
         "access-control-request-method": "POST",
@@ -34,7 +34,7 @@ describe("CORS Support", function() {
   it("should set Access-Control-Allow-Origin", function() {
     const response = axios(config.QUERY_URL, {
       method: "POST",
-      data: { topic: `${this.prefix}/topic1` },
+      data: { topic: `${this.testTopic}/topic1` },
       headers: { Origin: "localhost" }
     })
 

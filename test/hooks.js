@@ -10,16 +10,19 @@ function connectMqttClient(done) {
 
 function publishTestData(prefix, testData) {
   return function() {
-    this.prefix = `${prefix}/hivemq-api-${Date.now()}`
+    this.testTopic = `${prefix}/hivemq-api-${Date.now()}`
     this.publishedTopics = new Set()
 
     this.publish = (data) => {
       const topics = Object.keys(data)
 
-      topics.forEach((topic) => this.publishedTopics.add(`${this.prefix}/${topic}`))
+      topics.forEach((topic) => this.publishedTopics.add(`${this.testTopic}/${topic}`))
 
       return Promise.all(topics.map((topic) =>
-        this.client.publishAsync(`${this.prefix}/${topic}`, data[topic], { retain: true, qos: 2 })
+        this.client.publishAsync(`${this.testTopic}/${topic}`, data[topic], {
+          retain: true,
+          qos: 2
+        })
       ))
     }
 
