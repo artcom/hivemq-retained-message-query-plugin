@@ -221,7 +221,11 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             return ImmutableList.copyOf(topic.split("/", -1));
         }
 
-        private static String fromPath(ImmutableList<String> path) {
+        private static @Nullable String fromPath(ImmutableList<String> path) {
+            if (path.isEmpty()) {
+                return null;
+            }
+
             return String.join("/", path);
         }
     }
