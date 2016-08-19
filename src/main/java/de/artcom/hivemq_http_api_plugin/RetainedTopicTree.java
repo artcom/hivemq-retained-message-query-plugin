@@ -34,21 +34,11 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
         }
     }
 
-    public Node getNode(@Nullable String topic) {
+    public Stream<Node> getNodes(String topic) {
         lock.readLock().lock();
 
         try {
-            return root.getNode(topic);
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    public Stream<Node> getWildcardNodes(String topic) {
-        lock.readLock().lock();
-
-        try {
-            return root.getWildcardNodes(topic);
+            return root.getNodes(topic);
         } finally {
             lock.readLock().unlock();
         }
@@ -124,30 +114,11 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             return children.values().stream();
         }
 
-        private Node getNode(@Nullable String topic) {
-            return getNode(toPath(topic));
+        private Stream<Node> getNodes(String topic) {
+            return getNodes(toPath(topic));
         }
 
-        private Node getNode(ImmutableList<String> path) {
-            if (path.isEmpty()) {
-                return this;
-            }
-
-            String name = path.get(0);
-            Node child = children.get(name);
-
-            if (child == null) {
-                return null;
-            }
-
-            return child.getNode(path.subList(1, path.size()));
-        }
-
-        private Stream<Node> getWildcardNodes(String topic) {
-            return getWildcardNodes(toPath(topic));
-        }
-
-        private Stream<Node> getWildcardNodes(ImmutableList<String> path) {
+        private Stream<Node> getNodes(ImmutableList<String> path) {
             if (path.isEmpty()) {
                 return Stream.of(this);
             }
@@ -155,7 +126,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
             String name = path.get(0);
 
             if ("+".equals(name)) {
-                return getChildren().flatMap(child -> child.getWildcardNodes(path.subList(1, path.size())));
+                return getChildren().flatMap(child -> child.getNodes(path.subList(1, path.size())));
             } else {
                 Node child = children.get(name);
 
@@ -163,7 +134,7 @@ public class RetainedTopicTree implements OnPublishReceivedCallback {
                     return Stream.empty();
                 }
 
-                return child.getWildcardNodes(path.subList(1, path.size()));
+                return child.getNodes(path.subList(1, path.size()));
             }
         }
 
