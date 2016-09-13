@@ -25,8 +25,8 @@ $ mvn package -PRunWithHiveMQ
 There is a test suite in `test/test.js`. Tests are written in JavaScript and run using [mocha](http://mochajs.org/) on Node.js:
 
 ```bash
-npm install # install test dependencies
-npm test # run tests against localhost
+$ npm install # install test dependencies
+$ npm test # run tests against localhost
 ```
 
 To run the tests against a different HiveMQ instance, you can set the `BROKER` environment variable:
@@ -37,7 +37,7 @@ BROKER=broker.example.com npm test
 
 ## HTTP API
 
-The MQTT Broker offers an HTTP API to query retained topics (i.e. *states*) without using the MQTT protocol. The API uses JSON to define the query and represent the results.
+The MQTT Broker offers an HTTP API to query retained topics without using the MQTT protocol. The API uses JSON to define the query and represent the results.
 
 ## Query
 
@@ -88,7 +88,7 @@ The *result object* that we get back from the broker is also a JSON object:
 
 ### Wildcard Queries
 
-The query API has limited support for wildcard queries. The topic in the *query object* may contain one `+` wildcard. Instead of a single *result object*, the broker will return an array of *result objects*.
+The query API has limited support for wildcard queries: The topic in the *query object* may contain one or more `+` wildcards. Instead of a single *result object*, the broker will return an array of *result objects*.
 
 While the `#` wildcard is not supported, a similar result can be achieved using the `depth` parameter.
 
