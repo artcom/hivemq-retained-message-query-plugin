@@ -22,11 +22,11 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
-        <module name="hivemq-http-api-plugin" />
+        <module name="hivemq-retained-message-query-plugin" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="hivemq-http-api-plugin" target="1.8" />
+      <module name="hivemq-retained-message-query-plugin" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

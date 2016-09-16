@@ -1,4 +1,4 @@
-package de.artcom.hivemq_http_api_plugin.query.results;
+package de.artcom.hivemq_retained_message_query_plugin.query.results;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.jetbrains.annotations.Nullable;

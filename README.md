@@ -1,12 +1,12 @@
-# HiveMQ HTTP API Plugin
+# HiveMQ Retained Message Query Plugin
 
-The HTTP API Plugins allows to query retained messages via HTTP instead of using MQTT subscriptions.
+A HiveMQ plugin that allows to query retained messages via HTTP instead of using MQTT subscriptions.
 
 ## Development Setup
 
 HiveMQ is needed to run and test the plugin. An evaluation version is available [here](http://www.hivemq.com/downloads/).
 
-The plugin was developed using IntelliJ IDEA. The repo contains the project file: `hivemq-http-api-plugin.iml`.
+The plugin was developed using IntelliJ IDEA. The repo contains the project file: `hivemq-retained-message-query-plugin.iml`.
 
 It can also be built on the command line using Maven:
 
@@ -37,13 +37,13 @@ BROKER=broker.example.com npm test
 
 ## HTTP API
 
-The MQTT Broker offers an HTTP API to query retained topics without using the MQTT protocol. The API uses JSON to define the query and represent the results.
+The plugin provides an HTTP API to query retained messages without using the MQTT protocol. The API uses JSON to define the query and represent the results.
 
 ## Query
 
 ### Endpoint
 
-Retained topic payloads can be queried by sending an HTTP POST request to the `/query` endpoint. Using jQuery, you can send a query like this:
+Retained message payloads can be queried by sending an HTTP POST request to the `/query` endpoint. Using jQuery, you can send a query like this:
 
 ```javascript
 $.post(httpBrokerUri + "/query", JSON.stringify(query));
@@ -106,7 +106,7 @@ Topic           | Payload
 `foo/bar2/baz1` | `true`
 `foo/bar2/baz2` | `false`
 
-Let's assume we have the above retained topics published to the broker. We can now issue some queries:
+Let's assume we have the above retained messages published to the broker. We can now issue some queries:
 
 ##### Single Query (Depth 0)
 

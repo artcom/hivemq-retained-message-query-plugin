@@ -1,19 +1,19 @@
-package de.artcom.hivemq_http_api_plugin;
+package de.artcom.hivemq_retained_message_query_plugin;
 
 import com.hivemq.spi.callback.CallbackPriority;
 import com.hivemq.spi.callback.events.broker.OnBrokerStart;
 import com.hivemq.spi.callback.exception.BrokerUnableToStartException;
 import com.hivemq.spi.services.rest.RESTService;
-import de.artcom.hivemq_http_api_plugin.query.Resource;
+import de.artcom.hivemq_retained_message_query_plugin.query.Resource;
 
 import javax.inject.Inject;
 
-class HttpApiService implements OnBrokerStart {
+class RetainedMessageQueryService implements OnBrokerStart {
 
     private final RESTService restService;
 
     @Inject
-    public HttpApiService(RESTService restService) {
+    public RetainedMessageQueryService(RESTService restService) {
         this.restService = restService;
     }
 

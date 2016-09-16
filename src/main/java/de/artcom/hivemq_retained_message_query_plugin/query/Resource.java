@@ -1,12 +1,12 @@
-package de.artcom.hivemq_http_api_plugin.query;
+package de.artcom.hivemq_retained_message_query_plugin.query;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import de.artcom.hivemq_http_api_plugin.query.results.ParameterError;
-import de.artcom.hivemq_http_api_plugin.query.results.Result;
-import de.artcom.hivemq_http_api_plugin.query.results.ResultList;
+import de.artcom.hivemq_retained_message_query_plugin.query.results.ParameterError;
+import de.artcom.hivemq_retained_message_query_plugin.query.results.Result;
+import de.artcom.hivemq_retained_message_query_plugin.query.results.ResultList;
 
 import javax.inject.Inject;
 import javax.ws.rs.OPTIONS;

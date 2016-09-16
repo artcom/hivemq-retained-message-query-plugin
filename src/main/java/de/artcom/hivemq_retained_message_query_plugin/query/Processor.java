@@ -1,23 +1,21 @@
-package de.artcom.hivemq_http_api_plugin.query;
+package de.artcom.hivemq_retained_message_query_plugin.query;
 
-import de.artcom.hivemq_http_api_plugin.RetainedTopicTree;
-import de.artcom.hivemq_http_api_plugin.query.results.Result;
-import de.artcom.hivemq_http_api_plugin.query.results.ResultList;
-import de.artcom.hivemq_http_api_plugin.query.results.Topic;
-import de.artcom.hivemq_http_api_plugin.query.results.TopicNotFoundError;
+import de.artcom.hivemq_retained_message_query_plugin.RetainedMessageTree;
+import de.artcom.hivemq_retained_message_query_plugin.query.results.Result;
+import de.artcom.hivemq_retained_message_query_plugin.query.results.ResultList;
+import de.artcom.hivemq_retained_message_query_plugin.query.results.Topic;
+import de.artcom.hivemq_retained_message_query_plugin.query.results.TopicNotFoundError;
 
 import javax.inject.Inject;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 class Processor {
-    private final RetainedTopicTree retainedTopicTree;
+    private final RetainedMessageTree retainedMessageTree;
 
     @Inject
-    public Processor(RetainedTopicTree retainedTopicTree) {
-        this.retainedTopicTree = retainedTopicTree;
+    public Processor(RetainedMessageTree retainedMessageTree) {
+        this.retainedMessageTree = retainedMessageTree;
     }
 
     Result processQuery(Query query) {
@@ -29,19 +27,19 @@ class Processor {
     }
 
     private Result processSingleQuery(Query query) {
-        return retainedTopicTree.getNodes(query.topic)
+        return retainedMessageTree.getNodes(query.topic)
                 .findFirst()
                 .map(node -> (Result)createResult(node, query.depth))
                 .orElse(new TopicNotFoundError(query.topic));
     }
 
     private ResultList processWildcardQuery(Query query) {
-        return retainedTopicTree.getNodes(query.topic)
+        return retainedMessageTree.getNodes(query.topic)
                 .map(node -> createResult(node, query.depth))
                 .collect(Collectors.toCollection(ResultList::new));
     }
 
-    private static Topic createResult(RetainedTopicTree.Node node, int depth) {
+    private static Topic createResult(RetainedMessageTree.Node node, int depth) {
         List<Topic> children = null;
 
         if (depth != 0 && node.hasChildren()) {

@@ -1,4 +1,4 @@
-package de.artcom.hivemq_http_api_plugin;
+package de.artcom.hivemq_retained_message_query_plugin;
 
 import com.google.common.collect.ImmutableList;
 import com.hivemq.spi.callback.events.OnPublishReceivedCallback;
@@ -19,13 +19,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
 
 @Singleton
-public class RetainedTopicTree implements OnPublishReceivedCallback {
+public class RetainedMessageTree implements OnPublishReceivedCallback {
     private final Node root = Node.rootNode();
     private final ExecutorService executorService;
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
     @Inject
-    public RetainedTopicTree(ExecutorService executorService, RetainedMessageStore retainedMessageStore) {
+    public RetainedMessageTree(ExecutorService executorService, RetainedMessageStore retainedMessageStore) {
         this.executorService = executorService;
 
         Set<RetainedMessage> messages = retainedMessageStore.getRetainedMessages();

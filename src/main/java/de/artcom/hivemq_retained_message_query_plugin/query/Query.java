@@ -1,4 +1,4 @@
-package de.artcom.hivemq_http_api_plugin.query;
+package de.artcom.hivemq_retained_message_query_plugin.query;
 
 import org.jetbrains.annotations.Nullable;
 
