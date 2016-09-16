@@ -4,7 +4,7 @@
 
     <groupId>de.artcom</groupId>
     <artifactId>hivemq-retained-message-query-plugin</artifactId>
-    <version>0.6.0</version>
+    <version>0.6.1-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
