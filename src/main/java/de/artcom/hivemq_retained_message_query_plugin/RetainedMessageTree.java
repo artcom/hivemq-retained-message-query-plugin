@@ -6,7 +6,8 @@ import com.hivemq.spi.callback.exception.OnPublishReceivedException;
 import com.hivemq.spi.message.PUBLISH;
 import com.hivemq.spi.message.RetainedMessage;
 import com.hivemq.spi.security.ClientData;
-import com.hivemq.spi.services.RetainedMessageStore;
+import com.hivemq.spi.services.BlockingRetainedMessageStore;
+import com.hivemq.spi.services.PluginExecutorService;
 import org.jetbrains.annotations.Nullable;
 
 import javax.inject.Inject;
@@ -25,7 +26,7 @@ public class RetainedMessageTree implements OnPublishReceivedCallback {
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
     @Inject
-    public RetainedMessageTree(ExecutorService executorService, RetainedMessageStore retainedMessageStore) {
+    public RetainedMessageTree(PluginExecutorService executorService, BlockingRetainedMessageStore retainedMessageStore) {
         this.executorService = executorService;
 
         Set<RetainedMessage> messages = retainedMessageStore.getRetainedMessages();
