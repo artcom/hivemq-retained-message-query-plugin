@@ -55,12 +55,17 @@
                         <configuration>
                             <artifactSet>
                                 <excludes>
-                                    <exclude>javax.ws.rs:javax.ws.rs-api</exclude>
+                                    <exclude>aopalliance</exclude>
+                                    <exclude>io.dropwizard.metrics</exclude>
+                                    <exclude>com.google.guava</exclude>
+                                    <exclude>com.google.inject</exclude>
+                                    <exclude>javax.inject</exclude>
+                                    <exclude>javax.servlet</exclude>
+                                    <exclude>javax.ws.rs</exclude>
+                                    <exclude>org.apache.commons</exclude>
                                     <exclude>com.hivemq:hivemq-spi</exclude>
-                                    <exclude>com.google.inject:*</exclude>
-                                    <exclude>com.google.guava:*</exclude>
-                                    <exclude>org.slf4j:*</exclude>
-                                    <exclude>ch.qos.logback:*</exclude>
+                                    <exclude>org.slf4j</exclude>
+                                    <exclude>org.jetbrains</exclude>
                                 </excludes>
                             </artifactSet>
                         </configuration>
