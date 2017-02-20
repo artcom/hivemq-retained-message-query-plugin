@@ -4,7 +4,7 @@ import com.hivemq.spi.HiveMQPluginModule;
 import com.hivemq.spi.PluginEntryPoint;
 import com.hivemq.spi.plugin.meta.Information;
 
-@Information(name = "HiveMQ Retained Message Query Plugin", author = "ART+COM AG", version = "0.6.1-SNAPSHOT")
+@Information(name = "HiveMQ Retained Message Query Plugin", author = "ART+COM AG", version = "0.7.0")
 public class RetainedMessageQueryPluginModule extends HiveMQPluginModule {
 
     @Override
