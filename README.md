@@ -35,6 +35,24 @@ To run the tests against a different HiveMQ instance, you can set the `BROKER` e
 BROKER=broker.example.com npm test
 ```
 
+## Setup
+
+This plugin uses the inbuilt HTTP server of HiveMQ. Register the plugin as a rest service in `<hivemq-folder>/conf/conf.xml`, e.g.:
+
+```
+<rest-service>
+  <listeners>
+    <http-listener>
+      <name>HTTP-API</name>
+      <port>8081</port>
+      <bind-address>0.0.0.0</bind-address>
+    </http-listener>
+  </listeners>
+</rest-service>
+```
+
+See also: https://www.hivemq.com/docs/plugins/latest/#rest-service
+
 ## HTTP API
 
 The plugin provides an HTTP API to query retained messages without using the MQTT protocol. The API uses JSON to define the query and represent the results.
