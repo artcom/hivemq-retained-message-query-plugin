@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/hivemq-retained-message-query-plugin.iml" filepath="$PROJECT_DIR$/hivemq-retained-message-query-plugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/hivemq_retained_message_query_plugin.iml" filepath="$PROJECT_DIR$/hivemq_retained_message_query_plugin.iml" />
     </modules>
   </component>
 </project>

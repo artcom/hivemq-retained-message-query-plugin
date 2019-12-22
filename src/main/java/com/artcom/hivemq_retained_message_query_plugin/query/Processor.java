@@ -1,19 +1,17 @@
-package de.artcom.hivemq_retained_message_query_plugin.query;
+package com.artcom.hivemq_retained_message_query_plugin.query;
 
-import de.artcom.hivemq_retained_message_query_plugin.RetainedMessageTree;
-import de.artcom.hivemq_retained_message_query_plugin.query.results.Result;
-import de.artcom.hivemq_retained_message_query_plugin.query.results.ResultList;
-import de.artcom.hivemq_retained_message_query_plugin.query.results.Topic;
-import de.artcom.hivemq_retained_message_query_plugin.query.results.TopicNotFoundError;
+import com.artcom.hivemq_retained_message_query_plugin.query.results.Result;
+import com.artcom.hivemq_retained_message_query_plugin.query.results.ResultList;
+import com.artcom.hivemq_retained_message_query_plugin.query.results.Topic;
+import com.artcom.hivemq_retained_message_query_plugin.query.results.TopicNotFoundError;
+import com.artcom.hivemq_retained_message_query_plugin.RetainedMessageTree;
 
-import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
 
 class Processor {
     private final RetainedMessageTree retainedMessageTree;
 
-    @Inject
     public Processor(RetainedMessageTree retainedMessageTree) {
         this.retainedMessageTree = retainedMessageTree;
     }

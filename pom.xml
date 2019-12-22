@@ -2,15 +2,25 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>de.artcom</groupId>
-    <artifactId>hivemq-retained-message-query-plugin</artifactId>
-    <version>0.7.1-SNAPSHOT</version>
+    <groupId>com.artcom</groupId>
+    <artifactId>hivemq_retained_message_query_plugin</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <extension.name>Retained Message Query Plugin</extension.name>
+        <extension.author>Art+Com</extension.author>
+    </properties>
 
     <dependencies>
         <dependency>
             <groupId>com.hivemq</groupId>
-            <artifactId>hivemq-spi</artifactId>
-            <version>3.2.0</version>
+            <artifactId>hivemq-extension-sdk</artifactId>
+            <version>4.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+            <version>9.4.24.v20191120</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -24,11 +34,6 @@
             <version>2.4.1</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <version>RELEASE</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -36,16 +41,16 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <version>3.8.0</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>11</source>
+                    <target>11</target>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>2.1</version>
+                <version>3.1.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -55,26 +60,46 @@
                         <configuration>
                             <artifactSet>
                                 <excludes>
-                                    <exclude>aopalliance</exclude>
-                                    <exclude>io.dropwizard.metrics</exclude>
-                                    <exclude>com.google.guava</exclude>
-                                    <exclude>com.google.inject</exclude>
-                                    <exclude>javax.inject</exclude>
-                                    <exclude>javax.servlet</exclude>
-                                    <exclude>javax.ws.rs</exclude>
-                                    <exclude>org.apache.commons</exclude>
-                                    <exclude>com.hivemq:hivemq-spi</exclude>
-                                    <exclude>org.slf4j</exclude>
-                                    <exclude>org.jetbrains</exclude>
+                                    <exclude>com.hivemq:hivemq-extension-sdk</exclude>
+                                    <exclude>org.eclipse.jetty.server</exclude>
+                                    <exclude>org.slf4j:*</exclude>
+                                    <exclude>ch.qos.logback:*</exclude>
+                                    <exclude>javax.servlet:*</exclude>
                                 </excludes>
                             </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>assembly</id>
+                        <phase>package</phase> 
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>assembly.xml</descriptor> 
+                            </descriptors>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
-
     <profiles>
         <profile>
             <id>RunWithHiveMQ</id>
@@ -83,7 +108,7 @@
                     <plugin>
                         <groupId>com.hivemq</groupId>
                         <artifactId>hivemq-maven-plugin</artifactId>
-                        <version>3.0.1</version>
+                        <version>4.0.2</version>
                         <executions>
                             <execution>
                                 <id>hivemq</id>
@@ -92,7 +117,7 @@
                                     <goal>hivemq</goal>
                                 </goals>
                                 <configuration>
-                                    <hiveMQDir>/usr/local/opt/hivemq-3.2.2</hiveMQDir>
+                                    <hiveMQDir>FIXME, insert your HiveMQ directory here!</hiveMQDir>
                                     <debugMode>SERVER</debugMode>
                                 </configuration>
                             </execution>

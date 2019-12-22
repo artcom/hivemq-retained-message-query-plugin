@@ -1,4 +1,4 @@
-package de.artcom.hivemq_retained_message_query_plugin.query.results;
+package com.artcom.hivemq_retained_message_query_plugin.query.results;
 
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 

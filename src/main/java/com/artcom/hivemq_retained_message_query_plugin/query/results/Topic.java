@@ -1,7 +1,7 @@
-package de.artcom.hivemq_retained_message_query_plugin.query.results;
+package com.artcom.hivemq_retained_message_query_plugin.query.results;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import org.jetbrains.annotations.Nullable;
+import com.hivemq.extension.sdk.api.annotations.Nullable;
 
 import java.util.List;
 import java.util.stream.Stream;

@@ -1,6 +1,6 @@
-package de.artcom.hivemq_retained_message_query_plugin.query;
+package com.artcom.hivemq_retained_message_query_plugin.query;
 
-import org.jetbrains.annotations.Nullable;
+import com.hivemq.extension.sdk.api.annotations.Nullable;
 
 class Query {
     @Nullable

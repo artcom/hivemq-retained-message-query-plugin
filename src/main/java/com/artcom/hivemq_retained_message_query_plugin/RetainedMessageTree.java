@@ -1,38 +1,30 @@
-package de.artcom.hivemq_retained_message_query_plugin;
+package com.artcom.hivemq_retained_message_query_plugin;
 
 import com.google.common.collect.ImmutableList;
-import com.hivemq.spi.callback.events.OnPublishReceivedCallback;
-import com.hivemq.spi.callback.exception.OnPublishReceivedException;
-import com.hivemq.spi.message.PUBLISH;
-import com.hivemq.spi.message.RetainedMessage;
-import com.hivemq.spi.security.ClientData;
-import com.hivemq.spi.services.BlockingRetainedMessageStore;
-import com.hivemq.spi.services.PluginExecutorService;
-import org.jetbrains.annotations.Nullable;
+import com.hivemq.extension.sdk.api.annotations.NotNull;
+import com.hivemq.extension.sdk.api.annotations.Nullable;
+import com.hivemq.extension.sdk.api.interceptor.publish.PublishInboundInterceptor;
+import com.hivemq.extension.sdk.api.interceptor.publish.parameter.PublishInboundInput;
+import com.hivemq.extension.sdk.api.interceptor.publish.parameter.PublishInboundOutput;
+import com.hivemq.extension.sdk.api.packets.publish.PublishPacket;
+import com.hivemq.extension.sdk.api.services.Services;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.nio.charset.Charset;
-import java.util.Set;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.TreeMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
 
-@Singleton
-public class RetainedMessageTree implements OnPublishReceivedCallback {
+public class RetainedMessageTree implements PublishInboundInterceptor {
     private final Node root = Node.rootNode();
-    private final ExecutorService executorService;
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
-    @Inject
-    public RetainedMessageTree(PluginExecutorService executorService, BlockingRetainedMessageStore retainedMessageStore) {
-        this.executorService = executorService;
-
-        Set<RetainedMessage> messages = retainedMessageStore.getRetainedMessages();
-        for (RetainedMessage message : messages) {
-            addNode(message.getTopic(), message.getMessage());
-        }
+    public RetainedMessageTree() {
+//        Set<RetainedMessage> messages = Services.retainedMessageStore();
+//        for (RetainedMessage message : messages) {
+//            addNode(message.getTopic(), message.getMessage());
+//        }
     }
 
     public Stream<Node> getNodes(String topic) {
@@ -45,12 +37,12 @@ public class RetainedMessageTree implements OnPublishReceivedCallback {
         }
     }
 
-    private void addNode(String topic, byte[] payload) {
+    private void addNode(String topic, ByteBuffer payload) {
         lock.writeLock().lock();
 
         try {
             Node node = root.createNode(topic);
-            node.payload = new String(payload, Charset.forName("UTF-8"));
+            node.payload = StandardCharsets.UTF_8.decode(payload).toString();
         } finally {
             lock.writeLock().unlock();
         }
@@ -67,25 +59,22 @@ public class RetainedMessageTree implements OnPublishReceivedCallback {
     }
 
     @Override
-    public void onPublishReceived(final PUBLISH publish, ClientData clientData) throws OnPublishReceivedException {
-        if (publish.isRetain()) {
-            executorService.submit(() -> {
-                        String topic = publish.getTopic();
-                        byte[] payload = publish.getPayload();
+    public void onInboundPublish(@NotNull PublishInboundInput publishInboundInput, @NotNull PublishInboundOutput publishInboundOutput) {
+        PublishPacket packet = publishInboundInput.getPublishPacket();
 
-                        if (payload.length == 0) {
-                            removeNode(topic);
+        if (packet.getRetain()) {
+            Services.extensionExecutorService().submit(() -> {
+                        String topic = packet.getTopic();
+                        Optional<ByteBuffer> payload = packet.getPayload();
+
+                        if (payload.isPresent()) {
+                            addNode(topic, payload.get());
                         } else {
-                            addNode(topic, payload);
+                            removeNode(topic);
                         }
                     }
             );
         }
-    }
-
-    @Override
-    public int priority() {
-        return 0;
     }
 
     public static class Node {
