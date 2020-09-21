@@ -10,22 +10,32 @@ import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.CompletableFuture;
+
 public class RetainedMessageQueryMain implements ExtensionMain {
     private static final @NotNull Logger log = LoggerFactory.getLogger(RetainedMessageQueryMain.class);
     Server server;
 
     @Override
     public void extensionStart(@NotNull ExtensionStartInput extensionStartInput, @NotNull ExtensionStartOutput extensionStartOutput) {
-        try {
-            RetainedMessageTree retainedMessageTree = new RetainedMessageTree();
-            startServer(retainedMessageTree);
-            registerPublishInterceptor(retainedMessageTree);
+        RetainedMessageTree retainedMessageTree = new RetainedMessageTree();
+            CompletableFuture<Void> initFuture = retainedMessageTree.init();
 
-            final ExtensionInformation extensionInformation = extensionStartInput.getExtensionInformation();
-            log.info("Started " + extensionInformation.getName() + ":" + extensionInformation.getVersion());
-        } catch (Exception e) {
-            log.error("Exception thrown at extension start: ", e);
-        }
+        initFuture.whenComplete((ignored, throwable) -> {
+            try {
+                if (throwable != null) {
+                    throw throwable;
+                }
+
+                startServer(retainedMessageTree);
+                registerPublishInterceptor(retainedMessageTree);
+
+                final ExtensionInformation extensionInformation = extensionStartInput.getExtensionInformation();
+                log.info("Started " + extensionInformation.getName() + ":" + extensionInformation.getVersion());
+            } catch (Throwable e) {
+                log.error("Exception thrown during initialization: ", e);
+            }
+        });
     }
 
     private void startServer(RetainedMessageTree retainedMessageTree) {

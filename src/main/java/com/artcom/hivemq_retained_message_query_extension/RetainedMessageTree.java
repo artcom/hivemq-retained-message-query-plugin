@@ -8,11 +8,15 @@ import com.hivemq.extension.sdk.api.interceptor.publish.parameter.PublishInbound
 import com.hivemq.extension.sdk.api.interceptor.publish.parameter.PublishInboundOutput;
 import com.hivemq.extension.sdk.api.packets.publish.PublishPacket;
 import com.hivemq.extension.sdk.api.services.Services;
+import com.hivemq.extension.sdk.api.services.general.IterationCallback;
+import com.hivemq.extension.sdk.api.services.general.IterationContext;
+import com.hivemq.extension.sdk.api.services.publish.RetainedPublish;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
 
@@ -20,11 +24,14 @@ public class RetainedMessageTree implements PublishInboundInterceptor {
     private final Node root = Node.rootNode();
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
-    public RetainedMessageTree() {
-//        Set<RetainedMessage> messages = Services.retainedMessageStore();
-//        for (RetainedMessage message : messages) {
-//            addNode(message.getTopic(), message.getMessage());
-//        }
+    public CompletableFuture<Void> init() {
+        return Services.retainedMessageStore().iterateAllRetainedMessages(
+                new IterationCallback<RetainedPublish>() {
+                    @Override
+                    public void iterate(final @NotNull IterationContext context, final @NotNull RetainedPublish retainedPublish) {
+                        addNode(retainedPublish.getTopic(), retainedPublish.getPayload().get());
+                    }
+                });
     }
 
     public Stream<Node> getNodes(String topic) {
