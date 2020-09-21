@@ -1,4 +1,4 @@
-package com.artcom.hivemq_retained_message_query_plugin.query.results;
+package com.artcom.hivemq_retained_message_query_extension.query.results;
 
 import java.util.stream.Stream;
 

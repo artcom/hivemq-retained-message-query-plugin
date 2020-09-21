@@ -3,19 +3,22 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.artcom</groupId>
-    <artifactId>hivemq_retained_message_query_plugin</artifactId>
+    <artifactId>hivemq_retained_message_query_extension</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <description>HiveMQ 4 Retained Message Query Extension</description>
+
     <properties>
-        <extension.name>Retained Message Query Plugin</extension.name>
+        <extension.name>Retained Message Query Extension</extension.name>
         <extension.author>Art+Com</extension.author>
+        <output.dir>${basedir}</output.dir>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>com.hivemq</groupId>
             <artifactId>hivemq-extension-sdk</artifactId>
-            <version>4.2.0</version>
+            <version>4.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
@@ -61,7 +64,7 @@
                             <artifactSet>
                                 <excludes>
                                     <exclude>com.hivemq:hivemq-extension-sdk</exclude>
-                                    <exclude>org.eclipse.jetty.server</exclude>
+                                    <exclude>org.eclipse.jetty</exclude>
                                     <exclude>org.slf4j:*</exclude>
                                     <exclude>ch.qos.logback:*</exclude>
                                     <exclude>javax.servlet:*</exclude>

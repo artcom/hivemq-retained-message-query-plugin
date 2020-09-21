@@ -1,12 +1,12 @@
-# HiveMQ Retained Message Query Plugin
+# HiveMQ Retained Message Query Extension
 
-A HiveMQ plugin that allows to query retained messages via HTTP instead of using MQTT subscriptions.
+A HiveMQ extension that allows to query retained messages via HTTP instead of using MQTT subscriptions.
 
 ## Development Setup
 
-HiveMQ is needed to run and test the plugin. An evaluation version is available [here](http://www.hivemq.com/downloads/).
+HiveMQ is needed to run and test the extension. An evaluation version is available [here](http://www.hivemq.com/downloads/).
 
-The plugin was developed using IntelliJ IDEA. The repo contains the project file: `hivemq-retained-message-query-plugin.iml`.
+The extension was developed using IntelliJ IDEA. The repo contains the project file: `hivemq-retained-message-query-extension.iml`.
 
 It can also be built on the command line using Maven:
 
@@ -35,27 +35,9 @@ To run the tests against a different HiveMQ instance, you can set the `BROKER` e
 BROKER=broker.example.com npm test
 ```
 
-## Setup
-
-This plugin uses the inbuilt HTTP server of HiveMQ. Register the plugin as a rest service in `<hivemq-folder>/conf/conf.xml`, e.g.:
-
-```
-<rest-service>
-  <listeners>
-    <http-listener>
-      <name>HTTP-API</name>
-      <port>8081</port>
-      <bind-address>0.0.0.0</bind-address>
-    </http-listener>
-  </listeners>
-</rest-service>
-```
-
-See also: https://www.hivemq.com/docs/plugins/latest/#rest-service
-
 ## HTTP API
 
-The plugin provides an HTTP API to query retained messages without using the MQTT protocol. The API uses JSON to define the query and represent the results.
+The extension provides an HTTP API to query retained messages without using the MQTT protocol. The API uses JSON to define the query and represent the results.
 
 ## Query
 

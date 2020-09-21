@@ -1,4 +1,4 @@
-package com.artcom.hivemq_retained_message_query_plugin;
+package com.artcom.hivemq_retained_message_query_extension;
 
 import com.google.common.collect.ImmutableList;
 import com.hivemq.extension.sdk.api.annotations.NotNull;

@@ -1,6 +1,6 @@
-package com.artcom.hivemq_retained_message_query_plugin;
+package com.artcom.hivemq_retained_message_query_extension;
 
-import com.artcom.hivemq_retained_message_query_plugin.query.QueryHandler;
+import com.artcom.hivemq_retained_message_query_extension.query.QueryHandler;
 import com.hivemq.extension.sdk.api.ExtensionMain;
 import com.hivemq.extension.sdk.api.annotations.NotNull;
 import com.hivemq.extension.sdk.api.parameter.*;

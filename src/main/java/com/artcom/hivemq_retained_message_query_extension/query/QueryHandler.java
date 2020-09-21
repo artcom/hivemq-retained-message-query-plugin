@@ -1,14 +1,13 @@
-package com.artcom.hivemq_retained_message_query_plugin.query;
+package com.artcom.hivemq_retained_message_query_extension.query;
 
-import com.artcom.hivemq_retained_message_query_plugin.RetainedMessageQueryMain;
-import com.artcom.hivemq_retained_message_query_plugin.query.results.ParameterError;
-import com.artcom.hivemq_retained_message_query_plugin.query.results.Result;
-import com.artcom.hivemq_retained_message_query_plugin.query.results.ResultList;
+import com.artcom.hivemq_retained_message_query_extension.query.results.ParameterError;
+import com.artcom.hivemq_retained_message_query_extension.query.results.Result;
+import com.artcom.hivemq_retained_message_query_extension.query.results.ResultList;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.artcom.hivemq_retained_message_query_plugin.RetainedMessageTree;
+import com.artcom.hivemq_retained_message_query_extension.RetainedMessageTree;
 import com.hivemq.extension.sdk.api.annotations.NotNull;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;

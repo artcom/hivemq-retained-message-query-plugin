@@ -1,8 +1,8 @@
 {
-  "name": "hivemq-retained-message-query-plugin-tests",
+  "name": "hivemq-retained-message-query-extension-tests",
   "version": "1.0.0",
   "private": true,
-  "description": "Integration Tests for the HiveMQ Retained Message Query Plugin",
+  "description": "Integration Tests for the HiveMQ Retained Message Query Extension",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
