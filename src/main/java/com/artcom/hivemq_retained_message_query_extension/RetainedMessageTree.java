@@ -26,15 +26,10 @@ public class RetainedMessageTree implements PublishInboundInterceptor {
 
     public CompletableFuture<Void> init() {
         return Services.retainedMessageStore().iterateAllRetainedMessages(
-                new IterationCallback<RetainedPublish>() {
-                    @Override
-                    public void iterate(final @NotNull IterationContext context, final @NotNull RetainedPublish retainedPublish) {
-                        addNode(retainedPublish.getTopic(), retainedPublish.getPayload().get());
-                    }
-                });
+                (context, retainedPublish) -> addNode(retainedPublish.getTopic(), retainedPublish.getPayload().get()));
     }
 
-    public Stream<Node> getNodes(String topic) {
+    public Stream<Node> getNodes(@NotNull String topic) {
         lock.readLock().lock();
 
         try {
@@ -44,7 +39,7 @@ public class RetainedMessageTree implements PublishInboundInterceptor {
         }
     }
 
-    private void addNode(String topic, ByteBuffer payload) {
+    private void addNode(@NotNull String topic, @NotNull ByteBuffer payload) {
         lock.writeLock().lock();
 
         try {
@@ -55,7 +50,7 @@ public class RetainedMessageTree implements PublishInboundInterceptor {
         }
     }
 
-    private void removeNode(String topic) {
+    private void removeNode(@NotNull String topic) {
         lock.writeLock().lock();
 
         try {
@@ -87,15 +82,17 @@ public class RetainedMessageTree implements PublishInboundInterceptor {
     public static class Node {
         @Nullable
         public final String topic;
+
         @Nullable
         public String payload;
+
         private final TreeMap<String, Node> children = new TreeMap<>();
 
         private static Node rootNode() {
             return new Node(null);
         }
 
-        private static Node forPath(ImmutableList<String> path) {
+        private static Node forPath(@NotNull ImmutableList<String> path) {
             return new Node(fromPath(path));
         }
 
@@ -111,11 +108,11 @@ public class RetainedMessageTree implements PublishInboundInterceptor {
             return children.values().stream();
         }
 
-        private Stream<Node> getNodes(String topic) {
+        private Stream<Node> getNodes(@NotNull String topic) {
             return getNodes(toPath(topic));
         }
 
-        private Stream<Node> getNodes(ImmutableList<String> path) {
+        private Stream<Node> getNodes(@NotNull ImmutableList<String> path) {
             if (path.isEmpty()) {
                 return Stream.of(this);
             }
@@ -135,11 +132,11 @@ public class RetainedMessageTree implements PublishInboundInterceptor {
             }
         }
 
-        private Node createNode(String topic) {
+        private Node createNode(@NotNull String topic) {
             return createNode(toPath(topic), 0);
         }
 
-        private Node createNode(ImmutableList<String> path, int index) {
+        private Node createNode(@NotNull ImmutableList<String> path, int index) {
             if (index >= path.size()) {
                 return this;
             }
@@ -155,11 +152,11 @@ public class RetainedMessageTree implements PublishInboundInterceptor {
             return child.createNode(path, index + 1);
         }
 
-        private void removeNode(String topic) {
+        private void removeNode(@NotNull String topic) {
             removeNode(toPath(topic));
         }
 
-        private boolean removeNode(ImmutableList<String> path) {
+        private boolean removeNode(@NotNull ImmutableList<String> path) {
             if (path.isEmpty()) {
                 payload = null;
                 return children.isEmpty();
@@ -189,7 +186,7 @@ public class RetainedMessageTree implements PublishInboundInterceptor {
             return ImmutableList.copyOf(topic.split("/", -1));
         }
 
-        private static @Nullable String fromPath(ImmutableList<String> path) {
+        private static @Nullable String fromPath(@NotNull ImmutableList<String> path) {
             if (path.isEmpty()) {
                 return null;
             }

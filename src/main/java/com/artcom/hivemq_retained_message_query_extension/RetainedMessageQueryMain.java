@@ -5,12 +5,13 @@ import com.hivemq.extension.sdk.api.ExtensionMain;
 import com.hivemq.extension.sdk.api.annotations.NotNull;
 import com.hivemq.extension.sdk.api.parameter.*;
 import com.hivemq.extension.sdk.api.services.Services;
+import com.hivemq.extension.sdk.api.services.admin.LifecycleStage;
 import com.hivemq.extension.sdk.api.services.intializer.ClientInitializer;
 import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public class RetainedMessageQueryMain implements ExtensionMain {
     private static final @NotNull Logger log = LoggerFactory.getLogger(RetainedMessageQueryMain.class);
@@ -18,10 +19,26 @@ public class RetainedMessageQueryMain implements ExtensionMain {
 
     @Override
     public void extensionStart(@NotNull ExtensionStartInput extensionStartInput, @NotNull ExtensionStartOutput extensionStartOutput) {
-        RetainedMessageTree retainedMessageTree = new RetainedMessageTree();
-            CompletableFuture<Void> initFuture = retainedMessageTree.init();
+        log.info("Extension \"" + extensionStartInput.getExtensionInformation().getName()  + "\": Scheduling initialization");
 
-        initFuture.whenComplete((ignored, throwable) -> {
+        scheduleInitialize(extensionStartInput);
+    }
+
+    private void scheduleInitialize(@NotNull ExtensionStartInput extensionStartInput) {
+        Services.extensionExecutorService().schedule(() -> {
+            if (Services.adminService().getCurrentStage() == LifecycleStage.STARTED_SUCCESSFULLY) {
+                initialize(extensionStartInput.getExtensionInformation());
+            } else {
+                scheduleInitialize(extensionStartInput);
+            }
+        }, 1, TimeUnit.SECONDS);
+    }
+
+    private void initialize(@NotNull ExtensionInformation extensionInformation) {
+        log.info("Extension \"" + extensionInformation.getName()  + "\": Initializing");
+        
+        RetainedMessageTree retainedMessageTree = new RetainedMessageTree();
+        retainedMessageTree.init().whenComplete((ignored, throwable) -> {
             try {
                 if (throwable != null) {
                     throw throwable;
@@ -30,29 +47,25 @@ public class RetainedMessageQueryMain implements ExtensionMain {
                 startServer(retainedMessageTree);
                 registerPublishInterceptor(retainedMessageTree);
 
-                final ExtensionInformation extensionInformation = extensionStartInput.getExtensionInformation();
-                log.info("Started " + extensionInformation.getName() + ":" + extensionInformation.getVersion());
+
+                log.info("Extension \"" + extensionInformation.getName()  + "\": Started successfully");
             } catch (Throwable e) {
-                log.error("Exception thrown during initialization: ", e);
+                log.error("Extension \"" + extensionInformation.getName()  + "\": Exception during initialization\n", e);
             }
         });
     }
 
-    private void startServer(RetainedMessageTree retainedMessageTree) {
-        try {
-            server = new Server(4567);
-            server.setHandler(new QueryHandler(retainedMessageTree));
-            server.start();
-        } catch (Exception e) {
-            log.error("Exception thrown while starting HTTP server: ", e);
-        }
+    private void startServer(@NotNull RetainedMessageTree retainedMessageTree) throws Exception {
+        server = new Server(8080);
+        server.setHandler(new QueryHandler(retainedMessageTree));
+        server.start();
     }
 
     private void stopServer() {
         server.setStopAtShutdown(true);
     }
 
-    private void registerPublishInterceptor(RetainedMessageTree retainedMessageTree) {
+    private void registerPublishInterceptor(@NotNull RetainedMessageTree retainedMessageTree) {
         final ClientInitializer initializer = (initializerInput, clientContext) -> clientContext.addPublishInboundInterceptor(retainedMessageTree);
         Services.initializerRegistry().setClientInitializer(initializer);
     }
@@ -62,6 +75,6 @@ public class RetainedMessageQueryMain implements ExtensionMain {
         stopServer();
 
         final ExtensionInformation extensionInformation = extensionStopInput.getExtensionInformation();
-        log.info("Stopped " + extensionInformation.getName() + ":" + extensionInformation.getVersion());
+        log.info("Extension \"" + extensionInformation.getName()  + "\": Stopped successfully");
     }
 }
