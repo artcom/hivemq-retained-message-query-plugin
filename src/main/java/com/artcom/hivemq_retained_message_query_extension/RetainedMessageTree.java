@@ -69,7 +69,7 @@ public class RetainedMessageTree implements PublishInboundInterceptor {
                         String topic = packet.getTopic();
                         Optional<ByteBuffer> payload = packet.getPayload();
 
-                        if (payload.isPresent()) {
+                        if (payload.isPresent() && payload.get().limit() > 0) {
                             addNode(topic, payload.get());
                         } else {
                             removeNode(topic);
