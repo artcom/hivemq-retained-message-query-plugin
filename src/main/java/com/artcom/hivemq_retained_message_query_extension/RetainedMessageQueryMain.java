@@ -7,15 +7,17 @@ import com.hivemq.extension.sdk.api.parameter.*;
 import com.hivemq.extension.sdk.api.services.Services;
 import com.hivemq.extension.sdk.api.services.admin.LifecycleStage;
 import com.hivemq.extension.sdk.api.services.intializer.ClientInitializer;
-import org.eclipse.jetty.server.Server;
+import com.sun.net.httpserver.HttpContext;
+import com.sun.net.httpserver.HttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 public class RetainedMessageQueryMain implements ExtensionMain {
     private static final @NotNull Logger log = LoggerFactory.getLogger(RetainedMessageQueryMain.class);
-    Server server;
+    HttpServer server;
 
     @Override
     public void extensionStart(@NotNull ExtensionStartInput extensionStartInput, @NotNull ExtensionStartOutput extensionStartOutput) {
@@ -56,13 +58,14 @@ public class RetainedMessageQueryMain implements ExtensionMain {
     }
 
     private void startServer(@NotNull RetainedMessageTree retainedMessageTree) throws Exception {
-        server = new Server(8080);
-        server.setHandler(new QueryHandler(retainedMessageTree));
+        server = HttpServer.create(new InetSocketAddress(8080), 0);
+        HttpContext context = server.createContext("/query");
+        context.setHandler(new QueryHandler(retainedMessageTree));
         server.start();
     }
 
     private void stopServer() {
-        server.setStopAtShutdown(true);
+        server.stop(1);
     }
 
     private void registerPublishInterceptor(@NotNull RetainedMessageTree retainedMessageTree) {
