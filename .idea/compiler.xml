@@ -6,11 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="hivemq_retained_message_query_extension" />
+        <module name="hivemq-retained-message-query-extension" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="hivemq_retained_message_query_extension" target="11" />
+      <module name="hivemq-retained-message-query-extension" target="11" />
     </bytecodeTargetLevel>
   </component>
 </project>
