@@ -11,7 +11,7 @@ describe("CORS Support", () => {
   let testTopic
 
   beforeEach(async () => {
-    mqttClient = await connectAsync(tcpBrokerUri)
+    mqttClient = await connectAsync(tcpBrokerUri, { appId: "retainedTopicQueryExtensionTest" })
     httpClient = new HttpClient(httpBrokerUri)
 
     testTopic = `test/topping-${Math.random()}`
