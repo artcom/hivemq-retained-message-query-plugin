@@ -14,6 +14,7 @@ public class Error implements Result {
         return error;
     }
 
+    @Override
     public Stream<Result> flatten() {
         return Stream.of(this);
     }

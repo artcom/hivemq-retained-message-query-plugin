@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+import static java.net.HttpURLConnection.HTTP_BAD_METHOD;
+import static java.net.HttpURLConnection.HTTP_OK;
 
 public class QueryHandler implements HttpHandler {
     private static final @NotNull Logger log = LoggerFactory.getLogger(QueryHandler.class);
@@ -43,22 +45,28 @@ public class QueryHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        if (!exchange.getRequestMethod().equals("POST") && !exchange.getRequestMethod().equals("OPTIONS")) {
-            log.error("Query has unsupported method: " + exchange.getRequestMethod());
+        if (exchange.getRequestMethod().equals("OPTIONS")) {
+            exchange.getResponseHeaders().add("Access-Control-Expose-Headers", "Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Headers");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Access-Control-Request-Methods, Access-Control-Request-Headers");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "OPTIONS, POST");
+
+            exchange.sendResponseHeaders(HTTP_OK, 0);
+            exchange.getResponseBody().close();
             return;
         }
 
-        exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-        exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "origin, content-type, accept, authorization");
-        exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "POST");
-
         if (exchange.getRequestMethod().equals("POST")) {
+            exchange.getResponseHeaders().add("Access-Control-Expose-Headers", "Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Headers");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Access-Control-Request-Methods, Access-Control-Request-Headers");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "OPTIONS, POST");
+            exchange.getResponseHeaders().add("Content-Type", "application/json; charset=utf-8");
+
             String body = new BufferedReader(new InputStreamReader(exchange.getRequestBody()))
                     .lines().collect(Collectors.joining("\n"));
 
             Result result = computeResult(body);
-
-            exchange.getResponseHeaders().add("Content-Type", "application/json; charset=utf-8");
 
             String responseBody = objectMapper.writeValueAsString(result);
             exchange.sendResponseHeaders(result.getStatus(), responseBody.getBytes().length);
@@ -67,7 +75,12 @@ public class QueryHandler implements HttpHandler {
             os.close();
 
             log.info("Query '" + body + "' from " + exchange.getRemoteAddress() + " processed with status " + result.getStatus());
+            return;
         }
+
+        exchange.sendResponseHeaders(HTTP_BAD_METHOD, 0);
+        exchange.getResponseBody().close();
+        log.error("Unsupported query method: " + exchange.getRequestMethod());
     }
 
     private Result computeResult(String body) {

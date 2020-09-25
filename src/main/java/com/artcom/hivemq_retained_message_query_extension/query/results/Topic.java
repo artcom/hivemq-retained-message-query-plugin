@@ -31,6 +31,7 @@ public class Topic implements Result {
         return HTTP_OK;
     }
 
+    @Override
     public Stream<Result> flatten() {
         Stream<Topic> childrenStream = children == null ? Stream.empty() : children.stream();
 
