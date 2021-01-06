@@ -10,7 +10,7 @@
   "author": "ART+COM AG",
   "dependencies": {
     "@artcom/mqtt-topping": "^2.1.4",
-    "axios": "^0.20.0",
+    "axios": "^0.21.1",
     "jest": "^26.4.2"
   },
   "devDependencies": {
