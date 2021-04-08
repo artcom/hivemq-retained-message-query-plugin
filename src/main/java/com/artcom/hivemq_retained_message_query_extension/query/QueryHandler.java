@@ -45,7 +45,7 @@ public class QueryHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        addCORSHeaders(exchange);
+        // addCORSHeaders(exchange);
 
         if (exchange.getRequestMethod().equals("OPTIONS")) {
             exchange.sendResponseHeaders(HTTP_OK, 0);
