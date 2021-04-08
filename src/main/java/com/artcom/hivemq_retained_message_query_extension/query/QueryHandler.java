@@ -45,24 +45,16 @@ public class QueryHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        if (exchange.getRequestMethod().equals("OPTIONS")) {
-            exchange.getResponseHeaders().add("Access-Control-Expose-Headers", "Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Headers");
-            exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-            exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Access-Control-Request-Methods, Access-Control-Request-Headers");
-            exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "OPTIONS, POST");
+        addCORSHeaders(exchange);
 
+        if (exchange.getRequestMethod().equals("OPTIONS")) {
             exchange.sendResponseHeaders(HTTP_OK, 0);
             exchange.getResponseBody().close();
             return;
         }
 
         if (exchange.getRequestMethod().equals("POST")) {
-            exchange.getResponseHeaders().add("Access-Control-Expose-Headers", "Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Headers");
-            exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-            exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Access-Control-Request-Methods, Access-Control-Request-Headers");
-            exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "OPTIONS, POST");
             exchange.getResponseHeaders().add("Content-Type", "application/json; charset=utf-8");
-
             String body = new BufferedReader(new InputStreamReader(exchange.getRequestBody()))
                     .lines().collect(Collectors.joining("\n"));
 
@@ -81,6 +73,13 @@ public class QueryHandler implements HttpHandler {
         exchange.sendResponseHeaders(HTTP_BAD_METHOD, 0);
         exchange.getResponseBody().close();
         log.error("Unsupported query method: " + exchange.getRequestMethod());
+    }
+
+    private void addCORSHeaders(HttpExchange exchange) {
+        exchange.getResponseHeaders().add("Access-Control-Expose-Headers", "Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Headers");
+        exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Access-Control-Request-Methods, Access-Control-Request-Headers, Content-Type");
+        exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "OPTIONS, POST");
     }
 
     private Result computeResult(String body) {
