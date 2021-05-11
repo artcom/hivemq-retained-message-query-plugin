@@ -4,7 +4,7 @@
 
     <groupId>com.artcom</groupId>
     <artifactId>hivemq-retained-message-query-extension</artifactId>
-    <version>0.9.0</version>
+    <version>1.0.0</version>
 
     <description>HiveMQ 4 Retained Message Query Extension</description>
 
