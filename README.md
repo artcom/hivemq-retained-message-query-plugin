@@ -215,3 +215,15 @@ Let's assume we have the above retained messages published to the broker. We can
   { "topic": "foo/bar2/baz1", "payload": "true" }
 ]
 ```
+
+## CORS
+
+The HTTP Server can be configured to provide CORS headers by adding the following section to `conf/config.xml`:
+
+```
+<retained-message-query-extension>
+    <cors-header>true</cors-header>
+</retained-message-query-extension>
+```
+
+The default is `false`.

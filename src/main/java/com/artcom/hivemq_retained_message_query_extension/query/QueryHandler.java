@@ -31,8 +31,9 @@ public class QueryHandler implements HttpHandler {
 
     private final ObjectMapper objectMapper;
     private final Processor processor;
+    private final boolean cors;
 
-    public QueryHandler(RetainedMessageTree retainedMessageTree) {
+    public QueryHandler(RetainedMessageTree retainedMessageTree, boolean cors) {
         objectMapper = new ObjectMapper();
         objectMapper.setVisibilityChecker(objectMapper.getSerializationConfig().getDefaultVisibilityChecker()
                 .withFieldVisibility(ANY)
@@ -41,11 +42,14 @@ public class QueryHandler implements HttpHandler {
                 .withCreatorVisibility(NONE));
 
         this.processor = new Processor(retainedMessageTree);
+        this.cors = cors;
     }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        // addCORSHeaders(exchange);
+        if(this.cors) {
+            addCORSHeaders(exchange);
+        }
 
         if (exchange.getRequestMethod().equals("OPTIONS")) {
             exchange.sendResponseHeaders(HTTP_OK, 0);
