@@ -51,7 +51,7 @@ public class RetainedMessageQueryMain implements ExtensionMain {
     private void initialize(@NotNull ExtensionInformation extensionInformation) {
         log.info("Extension \"" + extensionInformation.getName()  + "\": Initializing");
 
-        final boolean cors = getCORSConfig();
+        final boolean cors = getCorsConfig();
 
         log.info("Extension \"" + extensionInformation.getName()  + "\": CORS headers " + (cors ? "enabled" : "disabled"));
 
@@ -97,7 +97,7 @@ public class RetainedMessageQueryMain implements ExtensionMain {
         log.info("Extension \"" + extensionInformation.getName()  + "\": Stopped successfully");
     }
 
-    private boolean getCORSConfig() {
+    private boolean getCorsConfig() {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             InputSource inputXML = new InputSource(new FileReader(new File("conf/config.xml")));

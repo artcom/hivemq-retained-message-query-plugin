@@ -48,7 +48,7 @@ public class QueryHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         if(this.cors) {
-            addCORSHeaders(exchange);
+            addCorsHeaders(exchange);
         }
 
         if (exchange.getRequestMethod().equals("OPTIONS")) {
@@ -79,7 +79,7 @@ public class QueryHandler implements HttpHandler {
         log.error("Unsupported query method: " + exchange.getRequestMethod());
     }
 
-    private void addCORSHeaders(HttpExchange exchange) {
+    private void addCorsHeaders(HttpExchange exchange) {
         exchange.getResponseHeaders().add("Access-Control-Expose-Headers", "Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Headers");
         exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
         exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Access-Control-Request-Methods, Access-Control-Request-Headers, Content-Type");
