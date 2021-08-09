@@ -8,9 +8,6 @@ import com.hivemq.extension.sdk.api.interceptor.publish.parameter.PublishInbound
 import com.hivemq.extension.sdk.api.interceptor.publish.parameter.PublishInboundOutput;
 import com.hivemq.extension.sdk.api.packets.publish.PublishPacket;
 import com.hivemq.extension.sdk.api.services.Services;
-import com.hivemq.extension.sdk.api.services.general.IterationCallback;
-import com.hivemq.extension.sdk.api.services.general.IterationContext;
-import com.hivemq.extension.sdk.api.services.publish.RetainedPublish;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;

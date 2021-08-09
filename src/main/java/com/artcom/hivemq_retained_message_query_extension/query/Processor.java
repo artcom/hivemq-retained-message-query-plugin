@@ -1,10 +1,10 @@
 package com.artcom.hivemq_retained_message_query_extension.query;
 
+import com.artcom.hivemq_retained_message_query_extension.RetainedMessageTree;
 import com.artcom.hivemq_retained_message_query_extension.query.results.Result;
 import com.artcom.hivemq_retained_message_query_extension.query.results.ResultList;
 import com.artcom.hivemq_retained_message_query_extension.query.results.Topic;
 import com.artcom.hivemq_retained_message_query_extension.query.results.TopicNotFoundError;
-import com.artcom.hivemq_retained_message_query_extension.RetainedMessageTree;
 
 import java.util.List;
 import java.util.stream.Collectors;
