@@ -218,7 +218,7 @@ Let's assume we have the above retained messages published to the broker. We can
 
 ## CORS
 
-The HTTP Server can be configured to provide CORS headers by adding the following section to `conf/config.xml`:
+It can be necessary to send CORS headers along with the response e.g. if there is no upstream server which handles it. The internal HTTP Server can be configured to provide these CORS headers by adding the following section to `conf/config.xml`:
 
 ```
 <retained-message-query-extension>
@@ -226,4 +226,4 @@ The HTTP Server can be configured to provide CORS headers by adding the followin
 </retained-message-query-extension>
 ```
 
-The default is `false`.
+The default is `false` to avoid [duplicate CORS header errors](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSMultipleAllowOriginNotAllowed).
