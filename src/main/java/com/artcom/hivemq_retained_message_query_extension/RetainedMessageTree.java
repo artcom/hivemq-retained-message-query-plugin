@@ -8,6 +8,7 @@ import com.hivemq.extension.sdk.api.interceptor.publish.parameter.PublishInbound
 import com.hivemq.extension.sdk.api.interceptor.publish.parameter.PublishInboundOutput;
 import com.hivemq.extension.sdk.api.packets.publish.PublishPacket;
 import com.hivemq.extension.sdk.api.services.Services;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -40,8 +41,10 @@ public class RetainedMessageTree implements PublishInboundInterceptor {
         lock.writeLock().lock();
 
         try {
+            LoggerFactory.getLogger(RetainedMessageTree.class).info("Adding node: " + topic);
             Node node = root.createNode(topic);
             node.payload = StandardCharsets.UTF_8.decode(payload).toString();
+            LoggerFactory.getLogger(RetainedMessageTree.class).info("Adding node done: " + topic);
         } finally {
             lock.writeLock().unlock();
         }
@@ -51,7 +54,9 @@ public class RetainedMessageTree implements PublishInboundInterceptor {
         lock.writeLock().lock();
 
         try {
+            LoggerFactory.getLogger(RetainedMessageTree.class).info("Removing node: " + topic);
             root.removeNode(topic);
+            LoggerFactory.getLogger(RetainedMessageTree.class).info("Removing node done: " + topic);
         } finally {
             lock.writeLock().unlock();
         }
@@ -62,10 +67,13 @@ public class RetainedMessageTree implements PublishInboundInterceptor {
         PublishPacket packet = publishInboundInput.getPublishPacket();
 
         if (packet.getRetain()) {
+            LoggerFactory.getLogger(RetainedMessageTree.class).info("Inbound publish received for topic: " + packet.getTopic());
+
             Services.extensionExecutorService().submit(() -> {
                         String topic = packet.getTopic();
                         Optional<ByteBuffer> payload = packet.getPayload();
 
+                        LoggerFactory.getLogger(RetainedMessageTree.class).info("Handling inbound publish: " + packet.getTopic() + " " + payload.isPresent());
                         if (payload.isPresent() && payload.get().limit() > 0) {
                             addNode(topic, payload.get());
                         } else {
