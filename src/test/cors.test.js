@@ -35,7 +35,7 @@ describe("CORS Support", () => {
     })
 
     expect(response.headers).toMatchObject({
-      'access-control-allow-headers': 'Access-Control-Request-Methods, Access-Control-Request-Headers',
+      'access-control-allow-headers': 'Access-Control-Request-Methods, Access-Control-Request-Headers, Content-Type',
       'access-control-allow-methods': 'OPTIONS, POST',
       'access-control-allow-origin': '*'
     })
