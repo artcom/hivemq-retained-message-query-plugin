@@ -34,11 +34,11 @@ describe("Query API", () => {
     })
 
     it("should return the payload of a topic with trailing slash", async () => {
-      await mqttClient.publish(`${testTopic}/topic3/`, "baz")
-      const response = await httpClient.query({ topic: `${testTopic}/topic3/` })
+      await mqttClient.publish(`${testTopic}/topic3`, "baz")
+      const response = await httpClient.query({ topic: `${testTopic}/topic3` })
       
       expect(response).toEqual({
-        topic: `${testTopic}/topic3/`,
+        topic: `${testTopic}/topic3`,
         payload: "baz"
       })
     })
@@ -477,11 +477,11 @@ describe("Query API", () => {
       })
 
       it("should support empty string subtopics", async () => {
-        await mqttClient.publish(`${testTopic}/topic3//foo`, true)
+        await mqttClient.publish(`${testTopic}/topic3/foo`, true)
         const response = await httpClient.query({ topic: `${testTopic}/+//foo`, depth: 1 })
 
         expect(response).toEqual([
-          { topic: `${testTopic}/topic3//foo`, payload: true }
+          { topic: `${testTopic}/topic3/foo`, payload: true }
         ])
       })
     })
