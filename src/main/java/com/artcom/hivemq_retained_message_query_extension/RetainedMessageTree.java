@@ -41,10 +41,10 @@ public class RetainedMessageTree implements PublishInboundInterceptor {
         lock.writeLock().lock();
 
         try {
-            LoggerFactory.getLogger(RetainedMessageTree.class).info("Adding node: " + topic);
+            LoggerFactory.getLogger(RetainedMessageTree.class).debug("Adding node: " + topic);
             Node node = root.createNode(topic);
             node.payload = StandardCharsets.UTF_8.decode(payload).toString();
-            LoggerFactory.getLogger(RetainedMessageTree.class).info("Adding node done: " + topic);
+            LoggerFactory.getLogger(RetainedMessageTree.class).debug("Adding node done: " + topic);
         } finally {
             lock.writeLock().unlock();
         }
@@ -54,9 +54,9 @@ public class RetainedMessageTree implements PublishInboundInterceptor {
         lock.writeLock().lock();
 
         try {
-            LoggerFactory.getLogger(RetainedMessageTree.class).info("Removing node: " + topic);
+            LoggerFactory.getLogger(RetainedMessageTree.class).debug("Removing node: " + topic);
             root.removeNode(topic);
-            LoggerFactory.getLogger(RetainedMessageTree.class).info("Removing node done: " + topic);
+            LoggerFactory.getLogger(RetainedMessageTree.class).debug("Removing node done: " + topic);
         } finally {
             lock.writeLock().unlock();
         }
@@ -67,13 +67,13 @@ public class RetainedMessageTree implements PublishInboundInterceptor {
         PublishPacket packet = publishInboundInput.getPublishPacket();
 
         if (packet.getRetain()) {
-            LoggerFactory.getLogger(RetainedMessageTree.class).info("Inbound publish received for topic: " + packet.getTopic());
+            LoggerFactory.getLogger(RetainedMessageTree.class).debug("Inbound publish received for topic: " + packet.getTopic());
 
             Services.extensionExecutorService().submit(() -> {
                         String topic = packet.getTopic();
                         Optional<ByteBuffer> payload = packet.getPayload();
 
-                        LoggerFactory.getLogger(RetainedMessageTree.class).info("Handling inbound publish: " + packet.getTopic() + " " + payload.isPresent());
+                        LoggerFactory.getLogger(RetainedMessageTree.class).debug("Handling inbound publish: " + packet.getTopic() + " " + payload.isPresent());
                         if (payload.isPresent() && payload.get().limit() > 0) {
                             addNode(topic, payload.get());
                         } else {
