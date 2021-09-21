@@ -62,6 +62,7 @@
                                     <exclude>org.slf4j:*</exclude>
                                     <exclude>ch.qos.logback:*</exclude>
                                     <exclude>javax.servlet:*</exclude>
+                                    <exclude>com.codahale:*</exclude>
                                 </excludes>
                             </artifactSet>
                             <filters>
