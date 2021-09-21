@@ -1,6 +1,6 @@
 {
   "name": "hivemq-retained-message-query-extension-tests",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Integration Tests for the HiveMQ Retained Message Query Extension",
   "main": "index.js",
