@@ -4,16 +4,16 @@ import com.google.common.collect.ImmutableList;
 import com.hivemq.extension.sdk.api.annotations.NotNull;
 import com.hivemq.extension.sdk.api.annotations.Nullable;
 import com.hivemq.extension.sdk.api.events.client.ClientLifecycleEventListener;
-import com.hivemq.extension.sdk.api.events.client.parameters.*;
+import com.hivemq.extension.sdk.api.events.client.parameters.AuthenticationSuccessfulInput;
+import com.hivemq.extension.sdk.api.events.client.parameters.ConnectionLostInput;
+import com.hivemq.extension.sdk.api.events.client.parameters.ConnectionStartInput;
+import com.hivemq.extension.sdk.api.events.client.parameters.DisconnectEventInput;
 import com.hivemq.extension.sdk.api.interceptor.publish.PublishInboundInterceptor;
 import com.hivemq.extension.sdk.api.interceptor.publish.parameter.PublishInboundInput;
 import com.hivemq.extension.sdk.api.interceptor.publish.parameter.PublishInboundOutput;
 import com.hivemq.extension.sdk.api.packets.connect.WillPublishPacket;
-import com.hivemq.extension.sdk.api.packets.general.DisconnectedReasonCode;
 import com.hivemq.extension.sdk.api.packets.publish.PublishPacket;
 import com.hivemq.extension.sdk.api.services.Services;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -25,8 +25,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
 
 public class RetainedMessageTree implements PublishInboundInterceptor, ClientLifecycleEventListener {
-    private static final @NotNull Logger log = LoggerFactory.getLogger(RetainedMessageTree.class);
-    
     private final Node root = Node.rootNode();
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
@@ -52,10 +50,8 @@ public class RetainedMessageTree implements PublishInboundInterceptor, ClientLif
         lock.writeLock().lock();
 
         try {
-            log.debug("Adding node: " + topic);
             Node node = root.createNode(topic);
             node.payload = StandardCharsets.UTF_8.decode(payload).toString();
-            log.debug("Adding node done: " + topic);
         } finally {
             lock.writeLock().unlock();
         }
@@ -65,9 +61,7 @@ public class RetainedMessageTree implements PublishInboundInterceptor, ClientLif
         lock.writeLock().lock();
 
         try {
-            log.debug("Removing node: " + topic);
             root.removeNode(topic);
-            log.debug("Removing node done: " + topic);
         } finally {
             lock.writeLock().unlock();
         }
@@ -78,15 +72,12 @@ public class RetainedMessageTree implements PublishInboundInterceptor, ClientLif
         PublishPacket packet = publishInboundInput.getPublishPacket();
 
         if (packet.getRetain()) {
-            log.debug("Inbound publish received for topic: " + packet.getTopic());
-
             handlePublish(packet.getTopic(),packet.getPayload());
         }
     }
 
     private void handlePublish(String topic, Optional<ByteBuffer> payload) {
         Services.extensionExecutorService().submit(() -> {
-                    log.debug("Handling inbound publish: " + topic + " " + payload.isPresent());
                     if (payload.isPresent() && payload.get().limit() > 0) {
                         addNode(topic, payload.get());
                     } else {
@@ -98,32 +89,20 @@ public class RetainedMessageTree implements PublishInboundInterceptor, ClientLif
 
     @Override
     public void onMqttConnectionStart(@NotNull ConnectionStartInput input) {
-        log.debug("onMqttConnectionStart");
-        log.debug("onMqttConnectionStart: " + input.getClientInformation().getClientId());
-
         if(input.getConnectPacket().getWillPublish().isPresent()) {
             WillPublishPacket wpp = input.getConnectPacket().getWillPublish().get();
             if(wpp.getRetain()) {
-                log.debug("Storing last will for client: " + input.getClientInformation().getClientId());
                 retainedLastWills.put(
                         input.getConnectPacket().getClientId(),
                         new RetainedLastWill(wpp.getTopic(), wpp.getPayload())
                 );
-            } else {
-                log.debug("Last will not retained for client: " + input.getClientInformation().getClientId());
             }
-        } else {
-            log.debug("No last will for client: " + input.getClientInformation().getClientId());
         }
     }
 
     @Override
     public void onConnectionLost(@NotNull final ConnectionLostInput input) {
-        log.debug("Client connection lost: " + input.getClientInformation().getClientId() + " " + input.getReasonCode());
-
         if(retainedLastWills.containsKey(input.getClientInformation().getClientId())) {
-            log.debug("Applying last will for client: " + input.getClientInformation().getClientId());
-
             RetainedLastWill will = retainedLastWills.get(input.getClientInformation().getClientId());
             handlePublish(will.topic, will.payload);
             retainedLastWills.remove(input.getClientInformation().getClientId());

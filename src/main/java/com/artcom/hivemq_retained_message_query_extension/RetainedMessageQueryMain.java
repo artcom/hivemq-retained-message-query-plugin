@@ -3,10 +3,6 @@ package com.artcom.hivemq_retained_message_query_extension;
 import com.artcom.hivemq_retained_message_query_extension.query.QueryHandler;
 import com.hivemq.extension.sdk.api.ExtensionMain;
 import com.hivemq.extension.sdk.api.annotations.NotNull;
-import com.hivemq.extension.sdk.api.annotations.Nullable;
-import com.hivemq.extension.sdk.api.events.client.ClientLifecycleEventListener;
-import com.hivemq.extension.sdk.api.events.client.ClientLifecycleEventListenerProvider;
-import com.hivemq.extension.sdk.api.events.client.parameters.ClientLifecycleEventListenerProviderInput;
 import com.hivemq.extension.sdk.api.parameter.*;
 import com.hivemq.extension.sdk.api.services.Services;
 import com.hivemq.extension.sdk.api.services.admin.LifecycleStage;
@@ -83,13 +79,13 @@ public class RetainedMessageQueryMain implements ExtensionMain {
     }
 
     private void registerRetainedMessageTree(@NotNull RetainedMessageTree retainedMessageTree) {
+        Services.eventRegistry().setClientLifecycleEventListener(input -> {
+            log.info("getClientLifecycleEventListener");
+            return retainedMessageTree;
+        });
+
         final ClientInitializer initializer = (initializerInput, clientContext) -> {
             clientContext.addPublishInboundInterceptor(retainedMessageTree);
-
-            Services.eventRegistry().setClientLifecycleEventListener(input -> {
-                log.info("getClientLifecycleEventListener");
-                return retainedMessageTree;
-            });
         };
 
         Services.initializerRegistry().setClientInitializer(initializer);
