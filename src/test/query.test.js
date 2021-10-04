@@ -476,12 +476,12 @@ describe("Query API", () => {
         ])
       })
 
-      it("should support empty string subtopics", async () => {
-        await mqttClient.publish(`${testTopic}/topic3/foo`, true)
+      it.only("should support empty string subtopics", async () => {
+        await mqttClient.publish(`${testTopic}/topic3//foo`, true)
         const response = await httpClient.query({ topic: `${testTopic}/+//foo`, depth: 1 })
 
         expect(response).toEqual([
-          { topic: `${testTopic}/topic3/foo`, payload: true }
+          { topic: `${testTopic}/topic3//foo`, payload: true }
         ])
       })
     })
