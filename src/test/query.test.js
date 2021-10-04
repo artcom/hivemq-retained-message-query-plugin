@@ -19,7 +19,7 @@ describe("Query API", () => {
   })
 
   afterEach(async () => {
-    await unpublishRecursively(mqttClient, httpClient, null)
+    await unpublishRecursively(mqttClient, httpClient, testTopic)
     mqttClient.disconnect()
   })
 
