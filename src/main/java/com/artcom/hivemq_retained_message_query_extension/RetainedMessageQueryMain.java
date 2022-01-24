@@ -80,7 +80,6 @@ public class RetainedMessageQueryMain implements ExtensionMain {
 
     private void registerRetainedMessageTree(@NotNull RetainedMessageTree retainedMessageTree) {
         Services.eventRegistry().setClientLifecycleEventListener(input -> {
-            log.info("getClientLifecycleEventListener");
             return retainedMessageTree;
         });
 
