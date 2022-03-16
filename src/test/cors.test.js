@@ -4,7 +4,6 @@ const { connectAsync, HttpClient, unpublishRecursively } = require("@artcom/mqtt
 const tcpBrokerUri = process.env.TCP_BROKER_URI || "tcp://localhost"
 const httpBrokerUri = process.env.HTTP_BROKER_URI || "http://localhost:8080/query"
 
-
 describe("CORS Support", () => {
   let mqttClient
   let httpClient
@@ -28,16 +27,17 @@ describe("CORS Support", () => {
     const response = await axios(httpBrokerUri, {
       method: "OPTIONS",
       headers: {
-        "origin": "localhost",
+        origin: "localhost",
         "access-control-request-methods": "POST",
-        "access-control-request-headers": "origin, content-type, accept, authorization"
-      }
+        "access-control-request-headers": "origin, content-type, accept, authorization",
+      },
     })
 
     expect(response.headers).toMatchObject({
-      'access-control-allow-headers': 'Access-Control-Request-Methods, Access-Control-Request-Headers, Content-Type',
-      'access-control-allow-methods': 'OPTIONS, POST',
-      'access-control-allow-origin': '*'
+      "access-control-allow-headers":
+        "Access-Control-Request-Methods, Access-Control-Request-Headers, Content-Type",
+      "access-control-allow-methods": "OPTIONS, POST",
+      "access-control-allow-origin": "*",
     })
   })
 
@@ -45,11 +45,11 @@ describe("CORS Support", () => {
     const response = await axios(httpBrokerUri, {
       method: "POST",
       data: { topic: `${testTopic}/foo` },
-      headers: { Origin: "localhost" }
+      headers: { Origin: "localhost" },
     })
 
     expect(response.headers).toMatchObject({
-      "access-control-allow-origin": "*"
+      "access-control-allow-origin": "*",
     })
   })
 })

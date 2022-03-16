@@ -23,26 +23,23 @@ describe("Will", () => {
     const willTopic = `${testTopic}/lastWill`
     const willPayload = { foo: "bar" }
 
-    mqttClient = await connectAsync(
-      tcpBrokerUri,
-      {
-        appId: "Test",
-        deviceId: "DeviceId",
-        connectTimeout: 500,
-        will: {
-          topic: willTopic,
-          payload: willPayload,
-          retain: true
-        }
-      }
-    )
+    mqttClient = await connectAsync(tcpBrokerUri, {
+      appId: "Test",
+      deviceId: "DeviceId",
+      connectTimeout: 500,
+      will: {
+        topic: willTopic,
+        payload: willPayload,
+        retain: true,
+      },
+    })
 
     // eslint-disable-next-line no-underscore-dangle
     mqttClient.client._client.stream.destroy()
     mqttClient.disconnect()
 
     // ensure that the timeout applies on the server
-    await new Promise(resolve => setTimeout(resolve, 600))
+    await new Promise((resolve) => setTimeout(resolve, 600))
 
     const response = await httpClient.query({ topic: willTopic })
     expect(response).toEqual({ topic: willTopic, payload: willPayload })

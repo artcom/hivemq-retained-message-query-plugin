@@ -29,30 +29,29 @@ describe("Query API", () => {
 
       expect(response).toEqual({
         topic: `${testTopic}/topic1`,
-        payload: "foo"
+        payload: "foo",
       })
     })
 
     it("should return the payload of a topic with trailing slash", async () => {
       await mqttClient.publish(`${testTopic}/topic3`, "baz")
       const response = await httpClient.query({ topic: `${testTopic}/topic3` })
-      
+
       expect(response).toEqual({
         topic: `${testTopic}/topic3`,
-        payload: "baz"
+        payload: "baz",
       })
     })
 
     it("should return error for inexistent topic", () => {
       expect.assertions(1)
 
-      return httpClient.query({ topic: `${testTopic}/does-not-exist` })
-        .catch(error => {
-          expect(JSON.parse(error.message)).toEqual({
-            topic: `${testTopic}/does-not-exist`,
-            error: 404
-          })
+      return httpClient.query({ topic: `${testTopic}/does-not-exist` }).catch((error) => {
+        expect(JSON.parse(error.message)).toEqual({
+          topic: `${testTopic}/does-not-exist`,
+          error: 404,
         })
+      })
     })
 
     it("should return error for unpublished topic", async () => {
@@ -60,26 +59,23 @@ describe("Query API", () => {
 
       await mqttClient.unpublish(`${testTopic}/topic1`)
 
-      return httpClient.query({ topic: `${testTopic}/topic1` })
-        .catch(error => {
-          expect(JSON.parse(error.message)).toEqual({
-            topic: `${testTopic}/topic1`,
-            error: 404
-          })
+      return httpClient.query({ topic: `${testTopic}/topic1` }).catch((error) => {
+        expect(JSON.parse(error.message)).toEqual({
+          topic: `${testTopic}/topic1`,
+          error: 404,
         })
+      })
     })
 
     it("should return no payload for unpublished topic with children", async () => {
       await mqttClient.publish(`${testTopic}/topic1/foo`, "bar")
       await mqttClient.unpublish(`${testTopic}/topic1`)
-      
-      const response = await httpClient.query({ topic: `${testTopic}/topic1`, depth: 1  })
-      
+
+      const response = await httpClient.query({ topic: `${testTopic}/topic1`, depth: 1 })
+
       expect(response).toEqual({
         topic: `${testTopic}/topic1`,
-        children: [
-          { topic: `${testTopic}/topic1/foo`, payload: "bar" }
-        ]
+        children: [{ topic: `${testTopic}/topic1/foo`, payload: "bar" }],
       })
     })
 
@@ -89,13 +85,12 @@ describe("Query API", () => {
       await mqttClient.publish(`${testTopic}/foo/bar`, "baz")
       await mqttClient.unpublish(`${testTopic}/foo/bar`)
 
-      return httpClient.query({ topic: `${testTopic}/foo/bar` })
-        .catch(error => {
-          expect(JSON.parse(error.message)).toEqual({
-            topic: `${testTopic}/foo/bar`,
-            error: 404
-          })
+      return httpClient.query({ topic: `${testTopic}/foo/bar` }).catch((error) => {
+        expect(JSON.parse(error.message)).toEqual({
+          topic: `${testTopic}/foo/bar`,
+          error: 404,
         })
+      })
     })
 
     describe("with Depth Parameter", () => {
@@ -107,55 +102,52 @@ describe("Query API", () => {
         const response = await httpClient.query({ topic: testTopic, depth: 0 })
 
         expect(response).toEqual({
-          topic: testTopic
+          topic: testTopic,
         })
       })
 
       it("should return singleton array for flattened intermediary topic", async () => {
-        const response = await httpClient.query({ topic: testTopic, depth: 0, flatten: true  })
-        
-        expect(response).toEqual([
-          { topic: testTopic }
-        ])
+        const response = await httpClient.query({ topic: testTopic, depth: 0, flatten: true })
+
+        expect(response).toEqual([{ topic: testTopic }])
       })
 
-      it("should return array with error object for flattened query of non-existent topic",
-        async () => {
+      it("should return array with error object for flattened query of non-existent topic", async () => {
         const response = await httpClient.query({
           topic: "does-not-exist",
           depth: 0,
-          flatten: true
+          flatten: true,
         })
-          
+
         expect(response).toEqual([
           {
             error: 404,
-            topic: "does-not-exist"
-          }
+            topic: "does-not-exist",
+          },
         ])
       })
 
       it("should return the payload of immediate children", async () => {
         const response = await httpClient.query({ topic: testTopic, depth: 1 })
-        
+
         return expect(response).toEqual({
           topic: testTopic,
           children: [
             { topic: `${testTopic}/topic1`, payload: "foo" },
-            { topic: `${testTopic}/topic2`, payload: "bar" }
-          ]
+            { topic: `${testTopic}/topic2`, payload: "bar" },
+          ],
         })
       })
 
       it("should return the payload of deeper children", async () => {
         const response = await httpClient.query({ topic: testTopic, depth: 2 })
-        
+
         expect(response).toEqual({
           topic: testTopic,
           children: [
             {
               topic: `${testTopic}/topic1`,
-              payload: "foo"
+              payload: "foo",
             },
             {
               topic: `${testTopic}/topic2`,
@@ -163,11 +155,11 @@ describe("Query API", () => {
               children: [
                 {
                   topic: `${testTopic}/topic2/deepTopic`,
-                  payload: "baz"
-                }
-              ]
-            }
-          ]
+                  payload: "baz",
+                },
+              ],
+            },
+          ],
         })
       })
 
@@ -185,22 +177,22 @@ describe("Query API", () => {
               children: [
                 {
                   topic: `${testTopic}//foo1`,
-                  payload: "bar1"
-                }
-              ]
+                  payload: "bar1",
+                },
+              ],
             },
             {
               topic: `${testTopic}/foo2`,
               children: [
                 {
                   topic: `${testTopic}/foo2/`,
-                  payload: "bar2"
-                }
-              ]
+                  payload: "bar2",
+                },
+              ],
             },
             {
               topic: `${testTopic}/topic1`,
-              payload: "foo"
+              payload: "foo",
             },
             {
               topic: `${testTopic}/topic2`,
@@ -208,11 +200,11 @@ describe("Query API", () => {
               children: [
                 {
                   topic: `${testTopic}/topic2/deepTopic`,
-                  payload: "baz"
-                }
-              ]
-            }
-          ]
+                  payload: "baz",
+                },
+              ],
+            },
+          ],
         })
       })
 
@@ -223,7 +215,7 @@ describe("Query API", () => {
           { topic: testTopic },
           { topic: `${testTopic}/topic1`, payload: "foo" },
           { topic: `${testTopic}/topic2`, payload: "bar" },
-          { topic: `${testTopic}/topic2/deepTopic`, payload: "baz" }
+          { topic: `${testTopic}/topic2/deepTopic`, payload: "baz" },
         ])
       })
 
@@ -233,14 +225,14 @@ describe("Query API", () => {
       })
 
       it("should return all children", async () => {
-        const response = await httpClient.query({ topic: testTopic, depth: -1})
+        const response = await httpClient.query({ topic: testTopic, depth: -1 })
 
         expect(response).toEqual({
           topic: testTopic,
           children: [
             {
               topic: `${testTopic}/topic1`,
-              payload: "foo"
+              payload: "foo",
             },
             {
               topic: `${testTopic}/topic2`,
@@ -248,11 +240,11 @@ describe("Query API", () => {
               children: [
                 {
                   topic: `${testTopic}/topic2/deepTopic`,
-                  payload: "baz"
-                }
-              ]
-            }
-          ]
+                  payload: "baz",
+                },
+              ],
+            },
+          ],
         })
       })
     })
@@ -260,31 +252,33 @@ describe("Query API", () => {
     describe("Batch Queries", () => {
       it("should return the values of multiple topics", async () => {
         const response = await httpClient.queryBatch([
-            { topic: `${testTopic}/topic1` },
-            { topic: `${testTopic}/topic2` }
-          ])
-        
+          { topic: `${testTopic}/topic1` },
+          { topic: `${testTopic}/topic2` },
+        ])
+
         expect(response).toEqual([
           { topic: `${testTopic}/topic1`, payload: "foo" },
-          { topic: `${testTopic}/topic2`, payload: "bar" }
+          { topic: `${testTopic}/topic2`, payload: "bar" },
         ])
       })
 
       it("should return values and errors for multiple topics", async () => {
         const response = await httpClient.queryBatch([
-            { topic: `${testTopic}/topic1` },
-            { topic: `${testTopic}/does-not-exist` }
-          ])
+          { topic: `${testTopic}/topic1` },
+          { topic: `${testTopic}/does-not-exist` },
+        ])
 
         expect(response).toEqual([
           {
             topic: `${testTopic}/topic1`,
-            payload: "foo"
+            payload: "foo",
           },
-          new Error(JSON.stringify({
-            error: 404,
-            topic: `${testTopic}/does-not-exist`
-          }))
+          new Error(
+            JSON.stringify({
+              error: 404,
+              topic: `${testTopic}/does-not-exist`,
+            })
+          ),
         ])
       })
 
@@ -294,13 +288,13 @@ describe("Query API", () => {
 
         const response = await httpClient.queryBatch([
           { topic: `${testTopic}/topic1` },
-          { topic: `${testTopic}/topic2`, depth: 1 }
+          { topic: `${testTopic}/topic2`, depth: 1 },
         ])
 
         expect(response).toEqual([
           {
             topic: `${testTopic}/topic1`,
-            payload: "foo"
+            payload: "foo",
           },
           {
             topic: `${testTopic}/topic2`,
@@ -308,10 +302,10 @@ describe("Query API", () => {
             children: [
               {
                 topic: `${testTopic}/topic2/child`,
-                payload: "two"
-              }
-            ]
-          }
+                payload: "two",
+              },
+            ],
+          },
         ])
       })
 
@@ -321,46 +315,43 @@ describe("Query API", () => {
 
         const response = await httpClient.queryBatch([
           { topic: `${testTopic}/topic1` },
-          { topic: `${testTopic}/topic2`, depth: 1, flatten: true }
+          { topic: `${testTopic}/topic2`, depth: 1, flatten: true },
         ])
 
         expect(response).toEqual([
           {
             topic: `${testTopic}/topic1`,
-            payload: "foo"
+            payload: "foo",
           },
           [
             { topic: `${testTopic}/topic2`, payload: "bar" },
-            { topic: `${testTopic}/topic2/child`, payload: "two" }
-          ]
+            { topic: `${testTopic}/topic2/child`, payload: "two" },
+          ],
         ])
       })
 
       it("should support wildcard queries", async () => {
         const response = await httpClient.queryBatch([
           { topic: `${testTopic}/+` },
-          { topic: `${testTopic}/topic2` }
+          { topic: `${testTopic}/topic2` },
         ])
 
         expect(response).toEqual([
           [
             { topic: `${testTopic}/topic1`, payload: "foo" },
-            { topic: `${testTopic}/topic2`, payload: "bar" }
+            { topic: `${testTopic}/topic2`, payload: "bar" },
           ],
-          { topic: `${testTopic}/topic2`, payload: "bar" }
+          { topic: `${testTopic}/topic2`, payload: "bar" },
         ])
       })
 
       it("should support wildcard queries without results", async () => {
         const response = await httpClient.queryBatch([
           { topic: `${testTopic}/+/does-not-exist` },
-          { topic: `${testTopic}/topic2` }
+          { topic: `${testTopic}/topic2` },
         ])
 
-        expect(response).toEqual([
-          [],
-          { topic: `${testTopic}/topic2`, payload: "bar" }
-        ])
+        expect(response).toEqual([[], { topic: `${testTopic}/topic2`, payload: "bar" }])
       })
     })
 
@@ -368,12 +359,12 @@ describe("Query API", () => {
       it("should return an error when topic is missing", () => {
         expect.assertions(1)
 
-        return httpClient.query({ invalid: "query" })
-          .catch(error => {
-            expect(JSON.parse(error.message)).toEqual({
-              error: 400,
-              message: "The request body must be a JSON object with a 'topic' and optional 'depth'" +
-                " property, or a JSON array of such objects."
+        return httpClient.query({ invalid: "query" }).catch((error) => {
+          expect(JSON.parse(error.message)).toEqual({
+            error: 400,
+            message:
+              "The request body must be a JSON object with a 'topic' and optional 'depth'" +
+              " property, or a JSON array of such objects.",
           })
         })
       })
@@ -387,10 +378,10 @@ describe("Query API", () => {
 
       it("should return all children", async () => {
         const response = await httpClient.query({ topic: `${testTopic}/+` })
-        
+
         expect(response).toEqual([
           { topic: `${testTopic}/topic1`, payload: "foo" },
-          { topic: `${testTopic}/topic2`, payload: "bar" }
+          { topic: `${testTopic}/topic2`, payload: "bar" },
         ])
       })
 
@@ -403,7 +394,7 @@ describe("Query API", () => {
         const response = await httpClient.query({ topic: `${testTopic}/+/child` })
         expect(response).toEqual([
           { topic: `${testTopic}/topic1/child`, payload: "one" },
-          { topic: `${testTopic}/topic2/child`, payload: "two" }
+          { topic: `${testTopic}/topic2/child`, payload: "two" },
         ])
       })
 
@@ -411,14 +402,12 @@ describe("Query API", () => {
         await mqttClient.publish(`${testTopic}/topic2/deep/child`, "deep")
         const response = await httpClient.query({ topic: `${testTopic}/+/deep/child` })
 
-        expect(response).toEqual([
-          { topic: `${testTopic}/topic2/deep/child`, payload: "deep" }
-        ])
+        expect(response).toEqual([{ topic: `${testTopic}/topic2/deep/child`, payload: "deep" }])
       })
 
       it("should support the depth parameter", async () => {
         const response = await httpClient.query({ topic: `${testTopic}/+`, depth: 1 })
-        
+
         expect(response).toEqual([
           {
             topic: `${testTopic}/topic1`,
@@ -426,8 +415,9 @@ describe("Query API", () => {
             children: [
               {
                 topic: `${testTopic}/topic1/child`,
-                payload: "one" }
-            ]
+                payload: "one",
+              },
+            ],
           },
           {
             topic: `${testTopic}/topic2`,
@@ -435,10 +425,10 @@ describe("Query API", () => {
             children: [
               {
                 topic: `${testTopic}/topic2/child`,
-                payload: "two"
-              }
-            ]
-          }
+                payload: "two",
+              },
+            ],
+          },
         ])
       })
 
@@ -446,23 +436,21 @@ describe("Query API", () => {
         const response = await httpClient.query({
           topic: `${testTopic}/+`,
           depth: 1,
-          flatten: true 
+          flatten: true,
         })
 
         expect(response).toEqual([
           { topic: `${testTopic}/topic1`, payload: "foo" },
           { topic: `${testTopic}/topic1/child`, payload: "one" },
           { topic: `${testTopic}/topic2`, payload: "bar" },
-          { topic: `${testTopic}/topic2/child`, payload: "two" }
+          { topic: `${testTopic}/topic2/child`, payload: "two" },
         ])
       })
 
       it("should support leading wildcard", async () => {
         const response = await httpClient.query({ topic: testTopic.replace("test", "+") })
 
-        expect(response).toEqual([
-          { topic: testTopic }
-        ])
+        expect(response).toEqual([{ topic: testTopic }])
       })
 
       it("should support multiple wildcards", async () => {
@@ -472,7 +460,7 @@ describe("Query API", () => {
         expect(response).toEqual([
           { topic: `${testTopic}/topic1/child`, payload: "one" },
           { topic: `${testTopic}/topic2/child`, payload: "two" },
-          { topic: `${testTopic}/topic2/otherChild`, payload: "three" }
+          { topic: `${testTopic}/topic2/otherChild`, payload: "three" },
         ])
       })
 
@@ -480,9 +468,7 @@ describe("Query API", () => {
         await mqttClient.publish(`${testTopic}/topic3//foo`, true)
         const response = await httpClient.query({ topic: `${testTopic}/+//foo`, depth: 1 })
 
-        expect(response).toEqual([
-          { topic: `${testTopic}/topic3//foo`, payload: true }
-        ])
+        expect(response).toEqual([{ topic: `${testTopic}/topic3//foo`, payload: true }])
       })
     })
   })
