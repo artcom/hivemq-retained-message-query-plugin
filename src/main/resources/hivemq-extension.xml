@@ -20,5 +20,5 @@
     <version>${version}</version>
     <name>${extension.name}</name>
     <author>${extension.author}</author>
-    <priority>1000</priority>
+    <priority>100</priority>
 </hivemq-extension>
