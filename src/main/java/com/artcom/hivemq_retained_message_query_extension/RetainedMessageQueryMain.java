@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
 
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 import java.io.File;
@@ -100,7 +99,6 @@ public class RetainedMessageQueryMain implements ExtensionMain {
 
     private boolean getCorsConfig() {
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             InputSource inputXML = new InputSource(new FileReader(new File("conf/config.xml")));
 
             XPathFactory xPathfactory = XPathFactory.newInstance();
