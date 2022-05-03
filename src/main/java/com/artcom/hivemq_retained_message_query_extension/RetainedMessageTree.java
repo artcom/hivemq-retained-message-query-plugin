@@ -14,6 +14,8 @@ import com.hivemq.extension.sdk.api.interceptor.publish.parameter.PublishInbound
 import com.hivemq.extension.sdk.api.packets.connect.WillPublishPacket;
 import com.hivemq.extension.sdk.api.packets.publish.PublishPacket;
 import com.hivemq.extension.sdk.api.services.Services;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -27,6 +29,8 @@ import java.util.stream.Stream;
 public class RetainedMessageTree implements PublishInboundInterceptor, ClientLifecycleEventListener {
     private final Node root = Node.rootNode();
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
+
+    private static final @NotNull Logger log = LoggerFactory.getLogger(RetainedMessageTree.class);
 
     private final HashMap<String, RetainedLastWill> retainedLastWills = new HashMap<String, RetainedLastWill>();
 
@@ -50,6 +54,7 @@ public class RetainedMessageTree implements PublishInboundInterceptor, ClientLif
         lock.writeLock().lock();
 
         try {
+            log.debug("Adding node '" + topic + "'");
             Node node = root.createNode(topic);
             node.payload = StandardCharsets.UTF_8.decode(payload).toString();
         } finally {
@@ -61,6 +66,7 @@ public class RetainedMessageTree implements PublishInboundInterceptor, ClientLif
         lock.writeLock().lock();
 
         try {
+            log.debug("Removing node '" + topic + "'");
             root.removeNode(topic);
         } finally {
             lock.writeLock().unlock();
@@ -72,6 +78,7 @@ public class RetainedMessageTree implements PublishInboundInterceptor, ClientLif
         PublishPacket packet = publishInboundInput.getPublishPacket();
 
         if (packet.getRetain()) {
+            log.debug("Retained publish received '" + packet.getTopic() + "'");
             handlePublish(packet.getTopic(),packet.getPayload());
         }
     }
@@ -79,8 +86,10 @@ public class RetainedMessageTree implements PublishInboundInterceptor, ClientLif
     private void handlePublish(String topic, Optional<ByteBuffer> payload) {
         Services.extensionExecutorService().submit(() -> {
                     if (payload.isPresent() && payload.get().limit() > 0) {
+                        log.debug("Try add node '" + topic + "': " + StandardCharsets.UTF_8.decode(payload.get()));
                         addNode(topic, payload.get());
                     } else {
+                        log.debug("Try remove node '" + topic + "'");
                         removeNode(topic);
                     }
                 }
