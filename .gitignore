@@ -2,6 +2,7 @@ node_modules
 
 dependency-reduced-pom.xml
 target
+artifacts
 
 .idea/workspace.xml
 .idea/uiDesigner.xml

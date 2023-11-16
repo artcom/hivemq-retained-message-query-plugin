@@ -1,0 +1,15 @@
+name: trigger-release
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: trigger
+        run: curl -X POST --fail -F token=$STATIC_BUILD_TOKEN -F ref=main -F "variables[REPOSITORY]=$GITHUB_REPOSITORY" -F "variables[OWNER]=$GITHUB_REPOSITORY_OWNER" -F "variables[COMMIT_TAG]=$GITHUB_REF_NAME" -F "variables[COMMIT_HASH]=$GITHUB_SHA" $STATIC_BUILD_URL
+        env:
+          STATIC_BUILD_TOKEN: ${{ secrets.STATIC_BUILD_TOKEN }}
+          STATIC_BUILD_URL: ${{ secrets.STATIC_BUILD_URL }}
