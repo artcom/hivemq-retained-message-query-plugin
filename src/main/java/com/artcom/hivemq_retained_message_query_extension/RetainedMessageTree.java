@@ -57,6 +57,7 @@ public class RetainedMessageTree implements PublishInboundInterceptor, ClientLif
             log.debug("Adding node '" + topic + "'");
             Node node = root.createNode(topic);
             node.payload = StandardCharsets.UTF_8.decode(payload).toString();
+            log.debug("Added node '" + topic + "': " + node.payload);
         } finally {
             lock.writeLock().unlock();
         }
@@ -86,7 +87,6 @@ public class RetainedMessageTree implements PublishInboundInterceptor, ClientLif
     private void handlePublish(String topic, Optional<ByteBuffer> payload) {
         Services.extensionExecutorService().submit(() -> {
                     if (payload.isPresent() && payload.get().limit() > 0) {
-                        log.debug("Try add node '" + topic + "': " + StandardCharsets.UTF_8.decode(payload.get()));
                         addNode(topic, payload.get());
                     } else {
                         log.debug("Try remove node '" + topic + "'");
