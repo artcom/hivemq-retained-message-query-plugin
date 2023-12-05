@@ -77,6 +77,7 @@ public class RetainedMessageTree implements PublishInboundInterceptor, ClientLif
     @Override
     public void onInboundPublish(@NotNull PublishInboundInput publishInboundInput, @NotNull PublishInboundOutput publishInboundOutput) {
         PublishPacket packet = publishInboundInput.getPublishPacket();
+        log.debug("Publish received '" + packet.getTopic() + "'");
 
         if (packet.getRetain()) {
             log.debug("Retained publish received '" + packet.getTopic() + "'");
