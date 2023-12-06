@@ -78,11 +78,13 @@ public class RetainedMessageQueryMain implements ExtensionMain {
     }
 
     private void registerRetainedMessageTree(@NotNull RetainedMessageTree retainedMessageTree) {
+        log.debug("Registering Retained Message Tree");
         Services.eventRegistry().setClientLifecycleEventListener(input -> {
             return retainedMessageTree;
         });
 
         final ClientInitializer initializer = (initializerInput, clientContext) -> {
+            log.debug("Adding a PublishInboundInterceptor to client id {}",initializerInput.getClientInformation().getClientId());
             clientContext.addPublishInboundInterceptor(retainedMessageTree);
         };
 
