@@ -67,7 +67,9 @@ public class RetainedMessageQueryMain implements ExtensionMain {
     }
 
     private void startServer(@NotNull RetainedMessageTree retainedMessageTree, boolean cors) throws Exception {
-        server = HttpServer.create(new InetSocketAddress(8080), 0);
+        final int port = System.getenv("QUERY_PLUGIN_PORT") != null ? Integer.parseInt(System.getenv("QUERY_PLUGIN_PORT")) : 8080;
+        server = HttpServer.create(new InetSocketAddress(port), 0);
+        log.info("Extension: Starting server on port " + port);
         HttpContext context = server.createContext("/query");
         context.setHandler(new QueryHandler(retainedMessageTree, cors));
         server.start();

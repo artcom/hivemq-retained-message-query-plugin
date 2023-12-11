@@ -227,3 +227,7 @@ It can be necessary to send CORS headers along with the response e.g. if there i
 ```
 
 The default is `false` to avoid [duplicate CORS header errors](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSMultipleAllowOriginNotAllowed).
+
+## HTTP API PORT
+
+The default port for the HTTP API is `8080`. It can be changed by setting the environment variable `QUERY_PLUGIN_PORT` to the desired port.
