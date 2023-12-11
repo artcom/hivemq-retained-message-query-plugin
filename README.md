@@ -226,6 +226,8 @@ It can be necessary to send CORS headers along with the response e.g. if there i
 </retained-message-query-extension>
 ```
 
+Or by setting the environment variable `QUERY_PLUGIN_CORS` to `true`.
+
 The default is `false` to avoid [duplicate CORS header errors](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSMultipleAllowOriginNotAllowed).
 
 ## HTTP API PORT

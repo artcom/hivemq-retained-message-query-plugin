@@ -103,8 +103,11 @@ public class RetainedMessageQueryMain implements ExtensionMain {
 
     private boolean getCorsConfig() {
         try {
-            InputSource inputXML = new InputSource(new FileReader(new File("conf/config.xml")));
+            if (System.getenv("QUERY_PLUGIN_CORS") != null) {
+                return "true".equals(System.getenv("QUERY_PLUGIN_CORS").toLowerCase());
+            }
 
+            InputSource inputXML = new InputSource(new FileReader(new File("conf/config.xml")));
             XPathFactory xPathfactory = XPathFactory.newInstance();
             XPath xPath = xPathfactory.newXPath();
             String result = xPath.evaluate("/hivemq/retained-message-query-extension/cors-header/text()", inputXML);
