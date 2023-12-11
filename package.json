@@ -11,7 +11,7 @@
   "author": "ART+COM AG",
   "dependencies": {
     "@artcom/mqtt-topping": "^3.3.1",
-    "axios": "^0.26.1",
+    "axios": "^1.6.0",
     "eslint-plugin-jest": "^26.1.1",
     "jest": "^27.5.1"
   },
