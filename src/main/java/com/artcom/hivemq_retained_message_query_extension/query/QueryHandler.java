@@ -35,7 +35,7 @@ public class QueryHandler implements HttpHandler {
 
     public QueryHandler(RetainedMessageTree retainedMessageTree, boolean cors) {
         objectMapper = new ObjectMapper();
-        objectMapper.setVisibilityChecker(objectMapper.getSerializationConfig().getDefaultVisibilityChecker()
+        objectMapper.setVisibility(objectMapper.getSerializationConfig().getDefaultVisibilityChecker()
                 .withFieldVisibility(ANY)
                 .withGetterVisibility(NONE)
                 .withSetterVisibility(NONE)
