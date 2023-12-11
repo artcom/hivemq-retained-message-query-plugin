@@ -3,10 +3,15 @@ package com.artcom.hivemq_retained_message_query_extension;
 import com.artcom.hivemq_retained_message_query_extension.query.QueryHandler;
 import com.hivemq.extension.sdk.api.ExtensionMain;
 import com.hivemq.extension.sdk.api.annotations.NotNull;
+import com.hivemq.extension.sdk.api.packets.disconnect.DisconnectReasonCode;
 import com.hivemq.extension.sdk.api.parameter.*;
 import com.hivemq.extension.sdk.api.services.Services;
 import com.hivemq.extension.sdk.api.services.admin.LifecycleStage;
+import com.hivemq.extension.sdk.api.services.general.IterationCallback;
+import com.hivemq.extension.sdk.api.services.general.IterationContext;
 import com.hivemq.extension.sdk.api.services.intializer.ClientInitializer;
+import com.hivemq.extension.sdk.api.services.session.ClientService;
+import com.hivemq.extension.sdk.api.services.session.SessionInformation;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import org.slf4j.Logger;
@@ -18,6 +23,7 @@ import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.FileReader;
 import java.net.InetSocketAddress;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 public class RetainedMessageQueryMain implements ExtensionMain {
@@ -57,7 +63,9 @@ public class RetainedMessageQueryMain implements ExtensionMain {
 
                 startServer(retainedMessageTree, cors);
                 registerRetainedMessageTree(retainedMessageTree);
-
+                if (System.getenv("QUERY_PLUGIN_DISCONNECT_CLIENTS") != null && "true".equals(System.getenv("QUERY_PLUGIN_DISCONNECT_CLIENTS").toLowerCase())) {
+                    disconnectAllClients();
+                }
 
                 log.info("Extension \"" + extensionInformation.getName()  + "\": Started successfully");
             } catch (Throwable e) {
@@ -92,6 +100,28 @@ public class RetainedMessageQueryMain implements ExtensionMain {
 
         Services.initializerRegistry().setClientInitializer(initializer);
     }
+
+    private void disconnectAllClients() {
+        final ClientService clientService = Services.clientService();
+
+        CompletableFuture<Void> iterationFuture = clientService.iterateAllClients(
+            new IterationCallback<SessionInformation>() {
+                @Override
+                public void iterate(IterationContext context, SessionInformation sessionInformation) {
+                    if (sessionInformation.isConnected()) {
+                        log.debug("Disconnecting client {}", sessionInformation.getClientIdentifier());
+                        clientService.disconnectClient(sessionInformation.getClientIdentifier(), false, DisconnectReasonCode.ADMINISTRATIVE_ACTION, "Retained message query extension initialization");
+                    }
+                }
+        });
+        iterationFuture.whenComplete((ignored, throwable) -> {
+            if (throwable == null) {
+                log.info("Disconnected all clients");
+            } else {
+                log.error("Exception while disconnecting all clients", throwable);
+            }
+        });
+    };
 
     @Override
     public void extensionStop(@NotNull ExtensionStopInput extensionStopInput, @NotNull ExtensionStopOutput extensionStopOutput) {

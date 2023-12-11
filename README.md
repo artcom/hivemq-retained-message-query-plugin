@@ -233,3 +233,7 @@ The default is `false` to avoid [duplicate CORS header errors](https://developer
 ## HTTP API PORT
 
 The default port for the HTTP API is `8080`. It can be changed by setting the environment variable `QUERY_PLUGIN_PORT` to the desired port.
+
+## Disconnect clients on extension initialization
+
+The extension can be configured to disconnect all clients when the extension is initialized. This is needed on startup when the extension is used with the HiveMQ CE broker. The extension will not add a PublishInboundInterceptor to clients connected before the extension is initialized. To disconnect all clients on startup, set the environment variable `QUERY_PLUGIN_DISCONNECT_CLIENTS` to `true`.
