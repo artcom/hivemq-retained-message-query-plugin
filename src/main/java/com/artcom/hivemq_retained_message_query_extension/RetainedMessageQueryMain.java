@@ -32,7 +32,7 @@ public class RetainedMessageQueryMain implements ExtensionMain {
 
     @Override
     public void extensionStart(@NotNull ExtensionStartInput extensionStartInput, @NotNull ExtensionStartOutput extensionStartOutput) {
-        log.info("Extension \"" + extensionStartInput.getExtensionInformation().getName()  + "\": Scheduling initialization");
+        log.info("Extension \"{}\": Scheduling initialization", extensionStartInput.getExtensionInformation().getName());
 
         scheduleInitialize(extensionStartInput);
     }
@@ -48,11 +48,11 @@ public class RetainedMessageQueryMain implements ExtensionMain {
     }
 
     private void initialize(@NotNull ExtensionInformation extensionInformation) {
-        log.info("Extension \"" + extensionInformation.getName()  + "\": Initializing");
+        log.info("Extension \"{}\": Initializing", extensionInformation.getName());
 
         final boolean cors = getCorsConfig();
 
-        log.info("Extension \"" + extensionInformation.getName()  + "\": CORS headers " + (cors ? "enabled" : "disabled"));
+        log.info("Extension \"{}\": CORS headers {}", extensionInformation.getName(), (cors ? "enabled" : "disabled"));
 
         RetainedMessageTree retainedMessageTree = new RetainedMessageTree();
         retainedMessageTree.init().whenComplete((ignored, throwable) -> {
@@ -61,23 +61,23 @@ public class RetainedMessageQueryMain implements ExtensionMain {
                     throw throwable;
                 }
 
-                startServer(retainedMessageTree, cors);
-                registerRetainedMessageTree(retainedMessageTree);
+                startServer(retainedMessageTree, extensionInformation.getName(), cors);
+                registerRetainedMessageTree(retainedMessageTree, extensionInformation.getName());
                 if (System.getenv("QUERY_PLUGIN_DISCONNECT_CLIENTS") != null && "true".equals(System.getenv("QUERY_PLUGIN_DISCONNECT_CLIENTS").toLowerCase())) {
-                    disconnectAllClients();
+                    disconnectAllClients(extensionInformation.getName());
                 }
 
-                log.info("Extension \"" + extensionInformation.getName()  + "\": Started successfully");
+                log.info("Extension \"{}\": Started successfully", extensionInformation.getName());
             } catch (Throwable e) {
-                log.error("Extension \"" + extensionInformation.getName()  + "\": Exception during initialization\n", e);
+                log.error("Extension \"{}\": Exception during initialization\n", extensionInformation.getName(), e);
             }
         });
     }
 
-    private void startServer(@NotNull RetainedMessageTree retainedMessageTree, boolean cors) throws Exception {
+    private void startServer(@NotNull RetainedMessageTree retainedMessageTree, String extensionName, boolean cors) throws Exception {
         final int port = System.getenv("QUERY_PLUGIN_PORT") != null ? Integer.parseInt(System.getenv("QUERY_PLUGIN_PORT")) : 8080;
         server = HttpServer.create(new InetSocketAddress(port), 0);
-        log.info("Extension: Starting server on port " + port);
+        log.info("Extension \"{}\": Server listening on port {}", extensionName, port);
         HttpContext context = server.createContext("/query");
         context.setHandler(new QueryHandler(retainedMessageTree, cors));
         server.start();
@@ -87,21 +87,21 @@ public class RetainedMessageQueryMain implements ExtensionMain {
         server.stop(1);
     }
 
-    private void registerRetainedMessageTree(@NotNull RetainedMessageTree retainedMessageTree) {
-        log.debug("Registering Retained Message Tree");
+    private void registerRetainedMessageTree(@NotNull RetainedMessageTree retainedMessageTree, String extensionName) {
+        log.debug("Extension \"{}\": Registering Retained Message Tree", extensionName);
         Services.eventRegistry().setClientLifecycleEventListener(input -> {
             return retainedMessageTree;
         });
 
         final ClientInitializer initializer = (initializerInput, clientContext) -> {
-            log.debug("Adding a PublishInboundInterceptor to client id {}",initializerInput.getClientInformation().getClientId());
+            log.debug("Extension \"{}\":Adding a PublishInboundInterceptor to client id {}", extensionName, initializerInput.getClientInformation().getClientId());
             clientContext.addPublishInboundInterceptor(retainedMessageTree);
         };
 
         Services.initializerRegistry().setClientInitializer(initializer);
     }
 
-    private void disconnectAllClients() {
+    private void disconnectAllClients(String extensionName) {
         final ClientService clientService = Services.clientService();
 
         CompletableFuture<Void> iterationFuture = clientService.iterateAllClients(
@@ -109,16 +109,16 @@ public class RetainedMessageQueryMain implements ExtensionMain {
                 @Override
                 public void iterate(IterationContext context, SessionInformation sessionInformation) {
                     if (sessionInformation.isConnected()) {
-                        log.debug("Disconnecting client {}", sessionInformation.getClientIdentifier());
+                        log.debug("Extension \"{}\": Disconnecting client {}", extensionName, sessionInformation.getClientIdentifier());
                         clientService.disconnectClient(sessionInformation.getClientIdentifier(), false, DisconnectReasonCode.ADMINISTRATIVE_ACTION, "Retained message query extension initialization");
                     }
                 }
         });
         iterationFuture.whenComplete((ignored, throwable) -> {
             if (throwable == null) {
-                log.info("Disconnected all clients");
+                log.info("Extension \"{}\": Disconnected all clients", extensionName);
             } else {
-                log.error("Exception while disconnecting all clients", throwable);
+                log.error("Extension \"{}\": Exception while disconnecting all clients", extensionName, throwable);
             }
         });
     };
